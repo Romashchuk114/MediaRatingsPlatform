@@ -1,12 +1,15 @@
 package at.fhtw.swen1.mrp.business;
 
 
+import com.github.f4b6a3.uuid.UuidCreator;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class User {
 
-    private Long id;
+    private UUID id;
     private String username;
     private String password;    //wird noch geändert
 
@@ -20,6 +23,7 @@ public class User {
 
 
     public User(List<Rating> likedRatings, List<MediaEntry> favoriteMediaEntries, List<MediaEntry> createdMediaEntries, List<Rating> ratings, String password, String username) {
+        this.id = UuidCreator.getTimeOrderedEpoch();
         this.likedRatings = likedRatings;
         this.favoriteMediaEntries = favoriteMediaEntries;
         this.createdMediaEntries = createdMediaEntries;
@@ -28,11 +32,13 @@ public class User {
         this.username = username;
     }
 
-    public User() {
-
+    public User(String username, String password) {
+        this.id = UuidCreator.getTimeOrderedEpoch();
+        this.username = username;
+        this.password = password;
     }
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 

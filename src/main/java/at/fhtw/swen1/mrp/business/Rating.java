@@ -1,18 +1,21 @@
 package at.fhtw.swen1.mrp.business;
 
 
+import com.github.f4b6a3.uuid.UuidCreator;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class Rating {
 
-    private Long id;
+    private UUID id;
 
     private int rating;      //stars
     private String comment;
     private LocalDateTime timestamp;
-    private boolean isPublic = false;
+    private boolean isPublic;
 
     private MediaEntry mediaEntry;
 
@@ -28,11 +31,12 @@ public class Rating {
         this.rating = rating;
     }
 
-    public Rating(int rating, String comment, boolean isPublic, MediaEntry mediaEntry, User user, List<User> likedByUsers) {
+    public Rating(int rating, String comment, MediaEntry mediaEntry, User user, List<User> likedByUsers) {
+        this.id = UuidCreator.getTimeOrderedEpoch();
         this.rating = rating;
         this.comment = comment;
         this.timestamp = LocalDateTime.now();
-        this.isPublic = isPublic;
+        this.isPublic = false;
         this.mediaEntry = mediaEntry;
         this.user = user;
         this.likedByUsers = likedByUsers;

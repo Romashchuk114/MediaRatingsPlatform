@@ -1,18 +1,27 @@
 package at.fhtw.swen1.mrp.presentation.controller;
 
+import at.fhtw.swen1.mrp.business.User;
+import at.fhtw.swen1.mrp.presentation.dto.AuthResponse;
+import at.fhtw.swen1.mrp.presentation.dto.UserCredentialsRequest;
 import at.fhtw.swen1.mrp.presentation.httpserver.http.ContentType;
 import at.fhtw.swen1.mrp.presentation.httpserver.http.HttpStatus;
 import at.fhtw.swen1.mrp.presentation.httpserver.http.Method;
 import at.fhtw.swen1.mrp.presentation.httpserver.server.Request;
 import at.fhtw.swen1.mrp.presentation.httpserver.server.Response;
 import at.fhtw.swen1.mrp.services.UserService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.Optional;
 
 
 public class UserController implements Controller {
     private final UserService userService;
+    private final ObjectMapper objectMapper;
 
     public UserController(UserService userService) {
         this.userService = userService;
+        this.objectMapper = new ObjectMapper();
     }
 
     @Override
@@ -38,15 +47,22 @@ public class UserController implements Controller {
 
     private Response handleRegister(Request request) {
         try {
+            UserCredentialsRequest dto = objectMapper.readValue(request.getBody(), UserCredentialsRequest.class);
 
-            String responseJson = """
-                    {
-                      "username": "register",
-                      "password": "pass123"
-                    }
-                    """;
+            if (!dto.isValid()) {
+                return new Response(HttpStatus.UNAUTHORIZED, ContentType.JSON,
+                        "{\"error\": \"Invalid credentials\"}");
+            }
 
-            return new Response(HttpStatus.CREATED, ContentType.JSON, responseJson);
+            User user = userService.registerUser(dto.getUsername(), dto.getPassword());
+
+            AuthResponse response = new AuthResponse(
+                    "User registered successfully",
+                    "Token123",     //TODO: anders machen
+                    user.getUsername()
+            );
+
+            return new Response(HttpStatus.CREATED, ContentType.JSON, objectMapper.writeValueAsString(response));
 
         } catch (Exception e) {
             return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
@@ -58,15 +74,29 @@ public class UserController implements Controller {
 
     private Response handleLogin(Request request) {
         try {
+            UserCredentialsRequest dto = objectMapper.readValue(
+                    request.getBody(), UserCredentialsRequest.class
+            );
 
-            String responseJson = """
-                    {
-                      "username": "login1",
-                      "password": "pass123"
-                    }
-                    """;
+            if (!dto.isValid()) {
+                return new Response(HttpStatus.UNAUTHORIZED, ContentType.JSON,
+                        "{\"error\": \"Invalid credentials\"}");
+            }
 
-            return new Response(HttpStatus.OK, ContentType.JSON, responseJson);
+            Optional<User> userOpt = userService.loginUser(dto.getUsername(), dto.getPassword());
+
+            if (userOpt.isEmpty()) {
+                return new Response(HttpStatus.UNAUTHORIZED, ContentType.JSON,
+                        "{\"error\": \"Invalid credentials\"}");
+            }
+
+            AuthResponse response = new AuthResponse(
+                    "Login successful",
+                    "Token123",
+                    userOpt.get().getUsername()
+            );
+
+            return new Response(HttpStatus.OK, ContentType.JSON, objectMapper.writeValueAsString(response));
 
         } catch (Exception e) {
             return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,

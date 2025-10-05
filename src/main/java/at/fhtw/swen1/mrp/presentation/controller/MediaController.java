@@ -6,25 +6,30 @@ import at.fhtw.swen1.mrp.presentation.httpserver.http.Method;
 import at.fhtw.swen1.mrp.presentation.httpserver.server.Request;
 import at.fhtw.swen1.mrp.presentation.httpserver.server.Response;
 import at.fhtw.swen1.mrp.services.MediaService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 public class MediaController implements Controller  {
     private final MediaService mediaService;
+    private final ObjectMapper objectMapper;
 
     public MediaController(MediaService mediaService) {
         this.mediaService = mediaService;
+        this.objectMapper = new ObjectMapper();
     }
     @Override
     public Response handleRequest(Request request) {
 
-        // POST /api/media - Create media
-        if ("media".equals(request.getPathParts().get(1)) &&
-                request.getMethod() == Method.POST) {
-            return handleCreateMedia(request);
-        }
+            // POST /api/media - Create media
+            if ("media".equals(request.getPathParts().get(1)) &&
+                    request.getMethod() == Method.POST) {
+                return handleCreateMedia(request);
+            }
 
-        return new Response(HttpStatus.NOT_FOUND, ContentType.JSON,
-                "{\"error\": \"Endpoint not found\"}");
+            return new Response(HttpStatus.NOT_FOUND, ContentType.JSON,
+                    "{\"error\": \"Endpoint not found\"}");
+
+
     }
 
     private Response handleCreateMedia(Request request) {
