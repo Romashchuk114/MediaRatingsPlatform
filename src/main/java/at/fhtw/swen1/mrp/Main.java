@@ -1,17 +1,41 @@
 package at.fhtw.swen1.mrp;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+import at.fhtw.swen1.mrp.data.MediaRepository;
+import at.fhtw.swen1.mrp.data.UserRepository;
+import at.fhtw.swen1.mrp.presentation.controller.MediaController;
+import at.fhtw.swen1.mrp.presentation.controller.UserController;
+import at.fhtw.swen1.mrp.presentation.httpserver.server.Server;
+import at.fhtw.swen1.mrp.presentation.httpserver.utils.Router;
+import at.fhtw.swen1.mrp.services.MediaService;
+import at.fhtw.swen1.mrp.services.UserService;
+
+import java.io.IOException;
+
 public class Main {
     public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
+        UserRepository userRepository = new UserRepository();
+        MediaRepository mediaRepository = new MediaRepository();
+
+        UserService userService = new UserService(userRepository);
+        MediaService mediaService = new MediaService(mediaRepository);
+
+        UserController userController = new UserController(userService);
+        MediaController mediaController = new MediaController(mediaService);
+
+        Router router = new Router();
+
+        // Controller registrieren
+        router.addController("/api/users", userController);
+        router.addController("/api/media", mediaController);
+
+        Server server = new Server(8080, router);
+
+        try {
+            server.start();
+
+        } catch (IOException e) {
+            System.err.println("Failed to start server: " + e.getMessage());
         }
     }
 }
