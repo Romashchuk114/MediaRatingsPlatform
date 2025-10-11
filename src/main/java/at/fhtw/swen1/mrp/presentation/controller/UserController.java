@@ -8,8 +8,8 @@ import at.fhtw.swen1.mrp.presentation.httpserver.http.HttpStatus;
 import at.fhtw.swen1.mrp.presentation.httpserver.http.Method;
 import at.fhtw.swen1.mrp.presentation.httpserver.server.Request;
 import at.fhtw.swen1.mrp.presentation.httpserver.server.Response;
+import at.fhtw.swen1.mrp.services.TokenService;
 import at.fhtw.swen1.mrp.services.UserService;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.Optional;
@@ -17,10 +17,12 @@ import java.util.Optional;
 
 public class UserController implements Controller {
     private final UserService userService;
+    private final TokenService tokenService;
     private final ObjectMapper objectMapper;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, TokenService tokenService) {
         this.userService = userService;
+        this.tokenService = tokenService;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -58,7 +60,7 @@ public class UserController implements Controller {
 
             AuthResponse response = new AuthResponse(
                     "User registered successfully",
-                    "Token123",     //TODO: anders machen
+                    null,
                     user.getUsername()
             );
 
@@ -79,7 +81,7 @@ public class UserController implements Controller {
             );
 
             if (!dto.isValid()) {
-                return new Response(HttpStatus.UNAUTHORIZED, ContentType.JSON,
+                return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
                         "{\"error\": \"Invalid credentials\"}");
             }
 
@@ -89,10 +91,11 @@ public class UserController implements Controller {
                 return new Response(HttpStatus.UNAUTHORIZED, ContentType.JSON,
                         "{\"error\": \"Invalid credentials\"}");
             }
+            String token = tokenService.generateToken(userOpt.get().getUsername(), userOpt.get().getId());
 
             AuthResponse response = new AuthResponse(
                     "Login successful",
-                    "Token123",
+                    token,
                     userOpt.get().getUsername()
             );
 

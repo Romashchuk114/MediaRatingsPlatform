@@ -13,16 +13,16 @@ public class User {
     private String username;
     private String password;    //wird noch geändert
 
-    private List<Rating> ratings = new ArrayList<>();
+    private List<UUID> ratings = new ArrayList<>();
 
-    private List<MediaEntry> createdMediaEntries = new ArrayList<>();
+    private List<UUID> createdMediaEntries = new ArrayList<>();
 
-    private List<MediaEntry> favoriteMediaEntries = new ArrayList<>();
+    private List<UUID> favoriteMediaEntries = new ArrayList<>();
 
-    private List<Rating> likedRatings = new ArrayList<>();
+    private List<UUID> likedRatings = new ArrayList<>();
 
 
-    public User(List<Rating> likedRatings, List<MediaEntry> favoriteMediaEntries, List<MediaEntry> createdMediaEntries, List<Rating> ratings, String password, String username) {
+    public User(List<UUID> likedRatings, List<UUID> favoriteMediaEntries, List<UUID> createdMediaEntries, List<UUID> ratings, String password, String username) {
         this.id = UuidCreator.getTimeOrderedEpoch();
         this.likedRatings = likedRatings;
         this.favoriteMediaEntries = favoriteMediaEntries;
@@ -50,19 +50,19 @@ public class User {
         return password;
     }
 
-    public List<Rating> getRatings() {
+    public List<UUID> getRatings() {
         return ratings;
     }
 
-    public List<MediaEntry> getCreatedMediaEntries() {
+    public List<UUID> getCreatedMediaEntries() {
         return createdMediaEntries;
     }
 
-    public List<MediaEntry> getFavoriteMediaEntries() {
+    public List<UUID> getFavoriteMediaEntries() {
         return favoriteMediaEntries;
     }
 
-    public List<Rating> getLikedRatings() {
+    public List<UUID> getLikedRatings() {
         return likedRatings;
     }
 
@@ -75,19 +75,19 @@ public class User {
         this.password = password;
     }
 
-    public void setRatings(List<Rating> ratings) {
+    public void setRatings(List<UUID> ratings) {
         this.ratings = ratings;
     }
 
-    public void setCreatedMediaEntries(List<MediaEntry> createdMediaEntries) {
+    public void setCreatedMediaEntries(List<UUID> createdMediaEntries) {
         this.createdMediaEntries = createdMediaEntries;
     }
 
-    public void setFavoriteMediaEntries(List<MediaEntry> favoriteMediaEntries) {
+    public void setFavoriteMediaEntries(List<UUID> favoriteMediaEntries) {
         this.favoriteMediaEntries = favoriteMediaEntries;
     }
 
-    public void setLikedRatings(List<Rating> likedRatings) {
+    public void setLikedRatings(List<UUID> likedRatings) {
         this.likedRatings = likedRatings;
     }
 }

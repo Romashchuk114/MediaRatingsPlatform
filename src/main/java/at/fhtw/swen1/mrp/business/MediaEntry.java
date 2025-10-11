@@ -12,20 +12,18 @@ public class MediaEntry {
     private UUID id;
     private String title;
     private String description;
-
     private MediaType mediaType;
     private int releaseYear;
     private int ageRestriction;
     private double averageScore;
 
     private List<String> genres = new ArrayList<>();
-    private User creator;
-    private List<Rating> ratings = new ArrayList<>();
-    private List<User> favoritesByUsers = new ArrayList<>();
+    private UUID creatorId;
+    private List<UUID> ratings = new ArrayList<>();
+    private List<UUID> favoritesByUsers = new ArrayList<>();
 
-
-    public MediaEntry(String title, String description, MediaType mediaType, int releaseYear, int ageRestriction, double averageScore, List<String> genres, User creator, List<Rating> ratings, List<User> favoritesByUsers) {
-        this.id = UuidCreator.getTimeOrderedEpoch();
+    public MediaEntry(UUID id, String title, String description, MediaType mediaType, int releaseYear, int ageRestriction, double averageScore, List<String> genres, UUID creatorId, List<UUID> ratings, List<UUID> favoritesByUsers) {
+        this.id = id;
         this.title = title;
         this.description = description;
         this.mediaType = mediaType;
@@ -33,9 +31,23 @@ public class MediaEntry {
         this.ageRestriction = ageRestriction;
         this.averageScore = averageScore;
         this.genres = genres;
-        this.creator = creator;
+        this.creatorId = creatorId;
         this.ratings = ratings;
         this.favoritesByUsers = favoritesByUsers;
+    }
+
+    public MediaEntry(String title, String description, MediaType mediaType, int releaseYear, int ageRestriction, List<String> genres, UUID creatorId) {
+        this.id = UuidCreator.getTimeOrderedEpoch();
+        this.title = title;
+        this.description = description;
+        this.mediaType = mediaType;
+        this.releaseYear = releaseYear;
+        this.ageRestriction = ageRestriction;
+        this.genres = genres != null ? genres : new ArrayList<>();
+        this.creatorId = creatorId;
+        this.averageScore = 0.0;
+        this.ratings = new ArrayList<>();
+        this.favoritesByUsers = new ArrayList<>();
     }
 
     public MediaEntry() {
@@ -70,18 +82,25 @@ public class MediaEntry {
         return averageScore;
     }
 
-    public User getCreator() {
-        return creator;
+    public UUID getCreatorId() {
+        return creatorId;
     }
 
-    public List<Rating> getRatings() {
+    public List<UUID> getRatings() {
         return ratings;
     }
 
-    public List<User> getFavoritesByUsers() {
+    public List<UUID> getFavoritesByUsers() {
         return favoritesByUsers;
     }
 
+    public List<String> getGenres() {
+        return genres;
+    }
+
+    public void setGenres(List<String> genres) {
+        this.genres = genres;
+    }
 
     public void setTitle(String title) {
         this.title = title;
@@ -107,15 +126,15 @@ public class MediaEntry {
         this.averageScore = averageScore;
     }
 
-    public void setCreator(User creator) {
-        this.creator = creator;
+    public void setCreatorId(UUID creatorId) {
+        this.creatorId = creatorId;
     }
 
-    public void setRatings(List<Rating> ratings) {
+    public void setRatings(List<UUID> ratings) {
         this.ratings = ratings;
     }
 
-    public void setFavoritesByUsers(List<User> favoritesByUsers) {
+    public void setFavoritesByUsers(List<UUID> favoritesByUsers) {
         this.favoritesByUsers = favoritesByUsers;
     }
 }

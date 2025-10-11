@@ -2,7 +2,7 @@ package at.fhtw.swen1.mrp.presentation.dto;
 
 public class AuthResponse {
     private String message;
-    private String token;       //TODO: anders machen!!!
+    private String token;
     private String username;
 
     public AuthResponse() {

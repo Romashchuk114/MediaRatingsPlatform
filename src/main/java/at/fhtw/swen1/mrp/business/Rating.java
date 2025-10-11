@@ -21,7 +21,7 @@ public class Rating {
 
     private User user;
 
-    private List<User> likedByUsers = new ArrayList<>();
+    private List<UUID> likedByUsers = new ArrayList<>();
 
 
     public void setRating(int rating) {
@@ -31,7 +31,7 @@ public class Rating {
         this.rating = rating;
     }
 
-    public Rating(int rating, String comment, MediaEntry mediaEntry, User user, List<User> likedByUsers) {
+    public Rating(int rating, String comment, MediaEntry mediaEntry, User user, List<UUID> likedByUsers) {
         this.id = UuidCreator.getTimeOrderedEpoch();
         this.rating = rating;
         this.comment = comment;
