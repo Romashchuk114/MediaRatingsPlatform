@@ -28,24 +28,30 @@ public class UserController implements Controller {
 
     @Override
     public Response handleRequest(Request request) {
+        try {
+            int pathSize = request.getPathParts().size();
 
-        // /api/users/register
-        if ("users".equals(request.getPathParts().get(1)) &&
-                "register".equals(request.getPathParts().get(2)) &&
-                request.getMethod() == Method.POST) {
-            return handleRegister(request);
+            // /api/users/register
+            if (pathSize == 3 && request.getPathParts().get(1).equals("users") &&
+                    request.getPathParts().get(2).equals("register") &&
+                    request.getMethod() == Method.POST) {
+                return handleRegister(request);
+            }
+
+            // /api/users/login
+            if (request.getPathParts().get(1).equals("users") &&
+                    request.getPathParts().get(2).equals("login") &&
+                    request.getMethod() == Method.POST) {
+                return handleLogin(request);
+            }
+
+            return new Response(HttpStatus.NOT_FOUND, ContentType.JSON,
+                    "{\"error\": \"Endpoint not found\"}");
+        } catch (Exception e) {
+            return new Response(HttpStatus.INTERNAL_SERVER_ERROR, ContentType.JSON,
+                    "{\"error\": \"" + e.getMessage() + "\"}");
         }
-
-        // /api/users/login
-        if ("users".equals(request.getPathParts().get(1)) &&
-                "login".equals(request.getPathParts().get(2)) &&
-                request.getMethod() == Method.POST) {
-            return handleLogin(request);
-        }
-
-        return new Response(HttpStatus.NOT_FOUND, ContentType.JSON,
-                "{\"error\": \"Endpoint not found\"}");
-}
+    }
 
     private Response handleRegister(Request request) {
         try {

@@ -23,25 +23,7 @@ public class MediaService {
                                   int releaseYear, List<String> genres, int ageRestriction,
                                   UUID creatorId) {
 
-        if (title == null || title.trim().isEmpty()) {
-            throw new IllegalArgumentException("Title cannot be empty");
-        }
-
-        if (mediaTypeStr == null || mediaTypeStr.trim().isEmpty()) {
-            throw new IllegalArgumentException("Media type cannot be empty");
-        }
-
-        if (genres == null || genres.isEmpty()) {
-            throw new IllegalArgumentException("Genres cannot be empty");
-        }
-
-        if (releaseYear <= 0) {
-            throw new IllegalArgumentException("Release year must be positive");
-        }
-
-        if (ageRestriction < 0) {
-            throw new IllegalArgumentException("Age restriction must be positive");
-        }
+        validateMediaInput(title, mediaTypeStr, genres, releaseYear, ageRestriction);
 
         MediaType mediaType;
         try {
@@ -68,5 +50,79 @@ public class MediaService {
         return mediaRepository.save(mediaEntry);
     }
 
+    public MediaEntry getMediaById(UUID id) {
+        Optional<MediaEntry> mediaOpt = mediaRepository.findById(id);
+        if (mediaOpt.isEmpty()) {
+            throw new IllegalArgumentException("Media with ID '" + id + "' not found");
+        }
+        return mediaOpt.get();
+    }
 
+    public List<MediaEntry> getAllMedia() {
+        return mediaRepository.findAll();
+    }
+
+    public MediaEntry updateMedia(UUID mediaId, String title, String description,
+                                  String mediaTypeStr, int releaseYear,
+                                  List<String> genres, int ageRestriction,
+                                  UUID userId) {
+
+        MediaEntry existingMedia = getMediaById(mediaId);
+
+        if (!existingMedia.getCreatorId().equals(userId)) {
+            throw new SecurityException("Only the creator can update this media entry");
+        }
+
+        validateMediaInput(title, mediaTypeStr, genres, releaseYear, ageRestriction);
+
+        MediaType mediaType;
+        try {
+            mediaType = MediaType.valueOf(mediaTypeStr.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid media type. Must be: movie, series, or game");
+        }
+
+        existingMedia.setTitle(title);
+        existingMedia.setDescription(description);
+        existingMedia.setMediaType(mediaType);
+        existingMedia.setReleaseYear(releaseYear);
+        existingMedia.setGenres(genres);
+        existingMedia.setAgeRestriction(ageRestriction);
+
+        return mediaRepository.save(existingMedia);
+    }
+
+    public void deleteMedia(UUID mediaId, UUID userId) {
+        MediaEntry existingMedia = getMediaById(mediaId);
+
+        if (!existingMedia.getCreatorId().equals(userId)) {
+            throw new SecurityException("Only the creator can delete this media entry");
+        }
+
+        mediaRepository.delete(mediaId);
+    }
+
+    private void validateMediaInput(String title, String mediaTypeStr,
+                                    List<String> genres, int releaseYear,
+                                    int ageRestriction) {
+        if (title == null || title.trim().isEmpty()) {
+            throw new IllegalArgumentException("Title cannot be empty");
+        }
+
+        if (mediaTypeStr == null || mediaTypeStr.trim().isEmpty()) {
+            throw new IllegalArgumentException("Media type cannot be empty");
+        }
+
+        if (genres == null || genres.isEmpty()) {
+            throw new IllegalArgumentException("Genres cannot be empty");
+        }
+
+        if (releaseYear <= 0) {
+            throw new IllegalArgumentException("Release year must be positive");
+        }
+
+        if (ageRestriction < 0) {
+            throw new IllegalArgumentException("Age restriction cannot be negative");
+        }
+    }
 }

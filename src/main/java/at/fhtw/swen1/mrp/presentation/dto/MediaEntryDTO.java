@@ -19,16 +19,16 @@ public class MediaEntryDTO {
     public MediaEntryDTO() {
     }
 
-    public MediaEntryDTO(UUID id, String title, String description, String mediaType, int releaseYear, List<String> genres, int ageRestriction, Double averageScore, UUID creatorId) {
-        this.id = id;
-        this.title = title;
-        this.description = description;
-        this.mediaType = mediaType;
-        this.releaseYear = releaseYear;
-        this.genres = genres;
-        this.ageRestriction = ageRestriction;
-        this.averageScore = averageScore;
-        this.creatorId = creatorId;
+    public MediaEntryDTO(MediaEntry mediaEntry) {
+        this.id = mediaEntry.getId();
+        this.title = mediaEntry.getTitle();
+        this.description = mediaEntry.getDescription();
+        this.mediaType = mediaEntry.getMediaType().name().toLowerCase();
+        this.releaseYear = mediaEntry.getReleaseYear();
+        this.genres = mediaEntry.getGenres();
+        this.ageRestriction = mediaEntry.getAgeRestriction();
+        this.averageScore = mediaEntry.getAverageScore();
+        this.creatorId = mediaEntry.getCreatorId();
     }
 
     public boolean isValid() {
