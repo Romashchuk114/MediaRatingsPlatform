@@ -1,5 +1,6 @@
 package at.fhtw.swen1.mrp;
 
+import at.fhtw.swen1.mrp.data.DatabaseConnection;
 import at.fhtw.swen1.mrp.data.MediaRepository;
 import at.fhtw.swen1.mrp.data.TokenRepository;
 import at.fhtw.swen1.mrp.data.UserRepository;
@@ -15,10 +16,15 @@ import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) {
+        DatabaseConnection dbConnection = new DatabaseConnection(
+                "jdbc:postgresql://localhost:5432/mrp_db",
+                "mrp_user",
+                "mrp_password"
+        );
 
-        UserRepository userRepository = new UserRepository();
-        MediaRepository mediaRepository = new MediaRepository();
-        TokenRepository tokenRepository = new TokenRepository();
+        UserRepository userRepository = new UserRepository(dbConnection);
+        MediaRepository mediaRepository = new MediaRepository(dbConnection);
+        TokenRepository tokenRepository = new TokenRepository(dbConnection);
 
         UserService userService = new UserService(userRepository);
         MediaService mediaService = new MediaService(mediaRepository, userRepository);
