@@ -13,12 +13,6 @@ public class DatabaseConnection {
         this.url = url;
         this.username = username;
         this.password = password;
-
-        try {
-            Class.forName("org.postgresql.Driver");
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("PostgreSQL JDBC Driver not found", e);
-        }
     }
 
     public Connection getConnection() throws SQLException {

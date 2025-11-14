@@ -16,15 +16,13 @@ public class TokenRepository {
 
     public void save(String token, UUID userId) {
         String sql = "INSERT INTO tokens (token, user_id) VALUES (?, ?) " +
-                "ON CONFLICT (token) DO UPDATE SET user_id = ?";
+                "ON CONFLICT (token) DO UPDATE SET user_id = EXCLUDED.user_id";
 
         try (Connection conn = dbConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, token);
             stmt.setObject(2, userId);
-            stmt.setObject(3, userId);
-
             stmt.executeUpdate();
 
         } catch (SQLException e) {
@@ -54,7 +52,7 @@ public class TokenRepository {
     }
 
     public boolean exists(String token) {
-        String sql = "SELECT COUNT(*) FROM tokens WHERE token = ?";
+        String sql = "SELECT 1 FROM tokens WHERE token = ?";
 
         try (Connection conn = dbConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -62,16 +60,12 @@ public class TokenRepository {
             stmt.setString(1, token);
 
             try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1) > 0;
-                }
+                return rs.next();
             }
 
         } catch (SQLException e) {
             throw new RuntimeException("Error checking token existence: " + e.getMessage(), e);
         }
-
-        return false;
     }
 
     public void delete(String token) {

@@ -11,16 +11,23 @@ import at.fhtw.swen1.mrp.presentation.httpserver.utils.Router;
 import at.fhtw.swen1.mrp.services.MediaService;
 import at.fhtw.swen1.mrp.services.TokenService;
 import at.fhtw.swen1.mrp.services.UserService;
+import io.github.cdimascio.dotenv.Dotenv;
 
 import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) {
-        DatabaseConnection dbConnection = new DatabaseConnection(
-                "jdbc:postgresql://localhost:5432/mrp_db",
-                "mrp_user",
-                "mrp_password"
-        );
+        Dotenv dotenv = Dotenv.load();
+
+        String dbHost = dotenv.get("DB_HOST");
+        String dbPort = dotenv.get("DB_PORT");
+        String dbName = dotenv.get("DB_NAME");
+        String dbUser = dotenv.get("DB_USER");
+        String dbPassword = dotenv.get("DB_PASSWORD");
+
+        String dbUrl = "jdbc:postgresql://" + dbHost + ":" + dbPort + "/" + dbName;
+
+        DatabaseConnection dbConnection = new DatabaseConnection(dbUrl, dbUser, dbPassword);
 
         UserRepository userRepository = new UserRepository(dbConnection);
         MediaRepository mediaRepository = new MediaRepository(dbConnection);

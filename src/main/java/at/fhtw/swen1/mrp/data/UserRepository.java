@@ -8,16 +8,17 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
-public class UserRepository {
+public class UserRepository implements Repository<User> {
     private final DatabaseConnection dbConnection;
 
     public UserRepository(DatabaseConnection dbConnection) {
         this.dbConnection = dbConnection;
     }
 
+    @Override
     public User save(User user) {
         String sql = "INSERT INTO users (id, username, password) VALUES (?, ?, ?) " +
-                "ON CONFLICT (id) DO UPDATE SET username = ?, password = ?";
+                "ON CONFLICT (id) DO UPDATE SET username = EXCLUDED.username, password = EXCLUDED.password";
 
         try (Connection conn = dbConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -25,8 +26,6 @@ public class UserRepository {
             stmt.setObject(1, user.getId());
             stmt.setString(2, user.getUsername());
             stmt.setString(3, user.getPassword());
-            stmt.setString(4, user.getUsername());
-            stmt.setString(5, user.getPassword());
 
             stmt.executeUpdate();
             return user;
@@ -36,6 +35,7 @@ public class UserRepository {
         }
     }
 
+    @Override
     public Optional<User> findById(UUID id) {
         String sql = "SELECT id, username, password FROM users WHERE id = ?";
 
@@ -46,12 +46,7 @@ public class UserRepository {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    User user = new User(
-                            rs.getString("username"),
-                            rs.getString("password")
-                    );
-                    setUserId(user, (UUID) rs.getObject("id"));
-                    return Optional.of(user);
+                    return Optional.of(mapResultSetToUser(rs));
                 }
             }
 
@@ -72,12 +67,7 @@ public class UserRepository {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    User user = new User(
-                            rs.getString("username"),
-                            rs.getString("password")
-                    );
-                    setUserId(user, (UUID) rs.getObject("id"));
-                    return Optional.of(user);
+                    return Optional.of(mapResultSetToUser(rs));
                 }
             }
 
@@ -89,7 +79,7 @@ public class UserRepository {
     }
 
     public boolean existsByUsername(String username) {
-        String sql = "SELECT COUNT(*) FROM users WHERE username = ?";
+        String sql = "SELECT 1 FROM users WHERE username = ?";
 
         try (Connection conn = dbConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -97,41 +87,21 @@ public class UserRepository {
             stmt.setString(1, username);
 
             try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1) > 0;
-                }
+                return rs.next();
             }
 
         } catch (SQLException e) {
             throw new RuntimeException("Error checking username existence: " + e.getMessage(), e);
         }
-
-        return false;
     }
 
-    public User update(User user) {
-        String sql = "UPDATE users SET username = ?, password = ? WHERE id = ?";
-
-        try (Connection conn = dbConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, user.getUsername());
-            stmt.setString(2, user.getPassword());
-            stmt.setObject(3, user.getId());
-
-            int rowsAffected = stmt.executeUpdate();
-            if (rowsAffected == 0) {
-                throw new RuntimeException("User not found for update");
-            }
-
-            return user;
-
-        } catch (SQLException e) {
-            throw new RuntimeException("Error updating user: " + e.getMessage(), e);
+    @Override
+    public Optional<User> delete(UUID id) {
+        Optional<User> user = findById(id);
+        if (user.isEmpty()) {
+            return Optional.empty();
         }
-    }
 
-    public void delete(UUID id) {
         String sql = "DELETE FROM users WHERE id = ?";
 
         try (Connection conn = dbConnection.getConnection();
@@ -143,8 +113,11 @@ public class UserRepository {
         } catch (SQLException e) {
             throw new RuntimeException("Error deleting user: " + e.getMessage(), e);
         }
+
+        return user;
     }
 
+    @Override
     public List<User> findAll() {
         String sql = "SELECT id, username, password FROM users";
         List<User> users = new ArrayList<>();
@@ -154,12 +127,7 @@ public class UserRepository {
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
-                User user = new User(
-                        rs.getString("username"),
-                        rs.getString("password")
-                );
-                setUserId(user, (UUID) rs.getObject("id"));
-                users.add(user);
+                users.add(mapResultSetToUser(rs));
             }
 
         } catch (SQLException e) {
@@ -169,13 +137,29 @@ public class UserRepository {
         return users;
     }
 
-    private void setUserId(User user, UUID id) {
-        try {
-            java.lang.reflect.Field idField = User.class.getDeclaredField("id");
-            idField.setAccessible(true);
-            idField.set(user, id);
-        } catch (Exception e) {
-            throw new RuntimeException("Error setting user id: " + e.getMessage(), e);
+    @Override
+    public boolean existsById(UUID id) {
+        String sql = "SELECT 1 FROM users WHERE id = ?";
+
+        try (Connection conn = dbConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setObject(1, id);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Error checking user existence: " + e.getMessage(), e);
         }
+    }
+
+    private User mapResultSetToUser(ResultSet rs) throws SQLException {
+        return new User(
+                (UUID) rs.getObject("id"),
+                rs.getString("username"),
+                rs.getString("password")
+        );
     }
 }
