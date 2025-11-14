@@ -9,6 +9,7 @@ import at.fhtw.swen1.mrp.presentation.controller.UserController;
 import at.fhtw.swen1.mrp.presentation.httpserver.server.Server;
 import at.fhtw.swen1.mrp.presentation.httpserver.utils.Router;
 import at.fhtw.swen1.mrp.services.MediaService;
+import at.fhtw.swen1.mrp.services.PasswordHasher;
 import at.fhtw.swen1.mrp.services.TokenService;
 import at.fhtw.swen1.mrp.services.UserService;
 import io.github.cdimascio.dotenv.Dotenv;
@@ -33,7 +34,8 @@ public class Main {
         MediaRepository mediaRepository = new MediaRepository(dbConnection);
         TokenRepository tokenRepository = new TokenRepository(dbConnection);
 
-        UserService userService = new UserService(userRepository);
+        PasswordHasher passwordHasher = new PasswordHasher();
+        UserService userService = new UserService(userRepository, passwordHasher);
         MediaService mediaService = new MediaService(mediaRepository, userRepository);
         TokenService tokenService = new TokenService(tokenRepository);
 

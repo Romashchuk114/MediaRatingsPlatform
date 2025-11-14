@@ -8,9 +8,11 @@ import java.util.UUID;
 
 public class UserService {
     private final UserRepository userRepository;
+    private final PasswordHasher passwordHasher;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PasswordHasher passwordHasher) {
         this.userRepository = userRepository;
+        this.passwordHasher = passwordHasher;
     }
 
     public User registerUser(String username, String password) {
@@ -25,7 +27,8 @@ public class UserService {
             throw new IllegalArgumentException("Username already exists");
         }
 
-        User user = new User(username, password);
+        String hashedPassword = passwordHasher.hash(password);
+        User user = new User(username, hashedPassword);
         return userRepository.save(user);
     }
 
@@ -37,7 +40,7 @@ public class UserService {
         }
 
         User user = userOpt.get();
-        if (!user.getPassword().equals(password)) {
+        if (!passwordHasher.verify(password, user.getPassword())) {
             return Optional.empty();
         }
 
