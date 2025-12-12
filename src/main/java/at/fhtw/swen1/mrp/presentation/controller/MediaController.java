@@ -1,17 +1,19 @@
 package at.fhtw.swen1.mrp.presentation.controller;
 
 import at.fhtw.swen1.mrp.business.MediaEntry;
+import at.fhtw.swen1.mrp.business.Rating;
 import at.fhtw.swen1.mrp.presentation.dto.MediaEntryDTO;
+import at.fhtw.swen1.mrp.presentation.dto.RatingDTO;
 import at.fhtw.swen1.mrp.presentation.httpserver.http.ContentType;
 import at.fhtw.swen1.mrp.presentation.httpserver.http.HttpStatus;
 import at.fhtw.swen1.mrp.presentation.httpserver.http.Method;
 import at.fhtw.swen1.mrp.presentation.httpserver.server.Request;
 import at.fhtw.swen1.mrp.presentation.httpserver.server.Response;
 import at.fhtw.swen1.mrp.services.MediaService;
+import at.fhtw.swen1.mrp.services.RatingService;
 import at.fhtw.swen1.mrp.services.TokenService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,13 +22,16 @@ import java.util.UUID;
 
 public class MediaController implements Controller  {
     private final MediaService mediaService;
+    private final RatingService ratingService;
     private final TokenService tokenService;
     private final ObjectMapper objectMapper;
 
-    public MediaController(MediaService mediaService, TokenService tokenService) {
+    public MediaController(MediaService mediaService, RatingService ratingService, TokenService tokenService) {
         this.mediaService = mediaService;
+        this.ratingService = ratingService;
         this.tokenService = tokenService;
         this.objectMapper = new ObjectMapper();
+        this.objectMapper.registerModule(new JavaTimeModule());
     }
     @Override
     public Response handleRequest(Request request) {
@@ -73,6 +78,15 @@ public class MediaController implements Controller  {
 
                 String mediaId = request.getPathParts().get(2);
                 return handleDeleteMedia(mediaId, userId.get());
+            }
+
+            // POST /api/media/{id}/rate - Rate media
+            if (pathSize == 4 && request.getPathParts().get(1).equals("media")
+                    && request.getPathParts().get(3).equals("rate")
+                    && request.getMethod() == Method.POST) {
+
+                String mediaId = request.getPathParts().get(2);
+                return handleRateMedia(request, mediaId, userId.get());
             }
 
             return new Response(HttpStatus.NOT_FOUND, ContentType.JSON,
@@ -219,6 +233,32 @@ public class MediaController implements Controller  {
         } catch (SecurityException e) {
             return new Response(HttpStatus.UNAUTHORIZED, ContentType.JSON,
                     "{\"error\": \"" + e.getMessage() + "\"}");
+        }
+    }
+
+    private Response handleRateMedia(Request request, String mediaIdStr, UUID userId) {
+        try {
+            UUID mediaId = UUID.fromString(mediaIdStr);
+            RatingDTO dto = objectMapper.readValue(request.getBody(), RatingDTO.class);
+
+            Rating rating = ratingService.createRating(
+                    mediaId,
+                    userId,
+                    dto.getStars(),
+                    dto.getComment()
+            );
+
+            RatingDTO response = new RatingDTO(rating);
+
+            return new Response(HttpStatus.CREATED, ContentType.JSON,
+                    objectMapper.writeValueAsString(response));
+
+        } catch (IllegalArgumentException e) {
+            return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
+                    "{\"error\": \"" + e.getMessage() + "\"}");
+        } catch (Exception e) {
+            return new Response(HttpStatus.INTERNAL_SERVER_ERROR, ContentType.JSON,
+                    "{\"error\": \"An unexpected error occurred\"}");
         }
     }
 

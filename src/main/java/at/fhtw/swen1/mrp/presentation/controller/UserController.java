@@ -1,29 +1,38 @@
 package at.fhtw.swen1.mrp.presentation.controller;
 
+import at.fhtw.swen1.mrp.business.Rating;
 import at.fhtw.swen1.mrp.business.User;
 import at.fhtw.swen1.mrp.presentation.dto.AuthResponse;
+import at.fhtw.swen1.mrp.presentation.dto.RatingDTO;
 import at.fhtw.swen1.mrp.presentation.dto.UserCredentialsRequest;
 import at.fhtw.swen1.mrp.presentation.httpserver.http.ContentType;
 import at.fhtw.swen1.mrp.presentation.httpserver.http.HttpStatus;
 import at.fhtw.swen1.mrp.presentation.httpserver.http.Method;
 import at.fhtw.swen1.mrp.presentation.httpserver.server.Request;
 import at.fhtw.swen1.mrp.presentation.httpserver.server.Response;
+import at.fhtw.swen1.mrp.services.RatingService;
 import at.fhtw.swen1.mrp.services.TokenService;
 import at.fhtw.swen1.mrp.services.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 
 public class UserController implements Controller {
     private final UserService userService;
     private final TokenService tokenService;
+    private final RatingService ratingService;
     private final ObjectMapper objectMapper;
 
-    public UserController(UserService userService, TokenService tokenService) {
+    public UserController(UserService userService, TokenService tokenService, RatingService ratingService) {
         this.userService = userService;
         this.tokenService = tokenService;
+        this.ratingService = ratingService;
         this.objectMapper = new ObjectMapper();
+        this.objectMapper.registerModule(new JavaTimeModule());
     }
 
     @Override
@@ -39,10 +48,24 @@ public class UserController implements Controller {
             }
 
             // /api/users/login
-            if (request.getPathParts().get(1).equals("users") &&
+            if (pathSize == 3 && request.getPathParts().get(1).equals("users") &&
                     request.getPathParts().get(2).equals("login") &&
                     request.getMethod() == Method.POST) {
                 return handleLogin(request);
+            }
+
+            Optional<UUID> authenticatedUserId = validateToken(request);
+            if (authenticatedUserId.isEmpty()) {
+                return new Response(HttpStatus.UNAUTHORIZED, ContentType.JSON,
+                        "{\"error\": \"Unauthorized - Invalid or missing token\"}");
+            }
+
+            // GET /api/users/{id}/ratings - Get user's rating history
+            if (pathSize == 4 && request.getPathParts().get(1).equals("users") &&
+                    request.getPathParts().get(3).equals("ratings") &&
+                    request.getMethod() == Method.GET) {
+                String userId = request.getPathParts().get(2);
+                return handleGetUserRatings(userId);
             }
 
             return new Response(HttpStatus.NOT_FOUND, ContentType.JSON,
@@ -111,5 +134,36 @@ public class UserController implements Controller {
             return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
                     "{\"error\": \"Invalid request body\"}");
         }
+    }
+
+    private Response handleGetUserRatings(String userIdStr) {
+        try {
+            UUID userId = UUID.fromString(userIdStr);
+            List<Rating> ratings = ratingService.getRatingsByUserId(userId);
+            List<RatingDTO> dtoList = ratings.stream()
+                    .map(RatingDTO::new)
+                    .toList();
+
+            return new Response(HttpStatus.OK, ContentType.JSON,
+                    objectMapper.writeValueAsString(dtoList));
+
+        } catch (IllegalArgumentException e) {
+            return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
+                    "{\"error\": \"Invalid user ID format\"}");
+        } catch (Exception e) {
+            return new Response(HttpStatus.INTERNAL_SERVER_ERROR, ContentType.JSON,
+                    "{\"error\": \"An unexpected error occurred\"}");
+        }
+    }
+
+    private Optional<UUID> validateToken(Request request) {
+        String authHeader = request.getHeader("authorization");
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return Optional.empty();
+        }
+
+        String token = authHeader.substring(7);
+        return tokenService.validateToken(token);
     }
 }
