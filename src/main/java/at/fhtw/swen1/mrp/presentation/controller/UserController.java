@@ -65,7 +65,7 @@ public class UserController implements Controller {
                     request.getPathParts().get(3).equals("ratings") &&
                     request.getMethod() == Method.GET) {
                 String userId = request.getPathParts().get(2);
-                return handleGetUserRatings(userId);
+                return handleGetUserRatings(userId, authenticatedUserId.get());
             }
 
             return new Response(HttpStatus.NOT_FOUND, ContentType.JSON,
@@ -136,10 +136,10 @@ public class UserController implements Controller {
         }
     }
 
-    private Response handleGetUserRatings(String userIdStr) {
+    private Response handleGetUserRatings(String userIdStr, UUID requestingUserId) {
         try {
             UUID userId = UUID.fromString(userIdStr);
-            List<Rating> ratings = ratingService.getRatingsByUserId(userId);
+            List<Rating> ratings = ratingService.getRatingsByUserId(userId, requestingUserId);
             List<RatingDTO> dtoList = ratings.stream()
                     .map(RatingDTO::new)
                     .toList();

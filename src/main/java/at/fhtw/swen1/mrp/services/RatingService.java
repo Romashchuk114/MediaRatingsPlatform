@@ -95,8 +95,16 @@ public class RatingService {
         return ratingRepository.save(rating);
     }
 
-    public List<Rating> getRatingsByUserId(UUID userId) {
-        return ratingRepository.findByUserId(userId);
+    public List<Rating> getRatingsByUserId(UUID userId, UUID requestingUserId) {
+        List<Rating> ratings = ratingRepository.findByUserId(userId);
+
+        for (Rating rating : ratings) {
+            if (!rating.isPublic() && !rating.getUserId().equals(requestingUserId)) {
+                rating.setComment(null);
+            }
+        }
+
+        return ratings;
     }
 
     public void likeRating(UUID ratingId, UUID userId) {
@@ -105,7 +113,41 @@ public class RatingService {
             throw new IllegalArgumentException("Rating not found");
         }
 
+        Rating rating = ratingOpt.get();
+        if (rating.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("Cannot like your own rating");
+        }
+
+        if (ratingRepository.hasUserLiked(ratingId, userId)) {
+            throw new IllegalArgumentException("You have already liked this rating");
+        }
+
         ratingRepository.addLike(ratingId, userId);
+    }
+
+    public void unlikeRating(UUID ratingId, UUID userId) {
+        Optional<Rating> ratingOpt = ratingRepository.findById(ratingId);
+        if (ratingOpt.isEmpty()) {
+            throw new IllegalArgumentException("Rating not found");
+        }
+
+        if (!ratingRepository.hasUserLiked(ratingId, userId)) {
+            throw new IllegalArgumentException("You have not liked this rating");
+        }
+
+        ratingRepository.removeLike(ratingId, userId);
+    }
+
+    public List<Rating> getPublicRatingsForMedia(UUID mediaId, UUID requestingUserId) {
+        List<Rating> allRatings = ratingRepository.findByMediaId(mediaId);
+
+        for (Rating rating : allRatings) {
+            if (!rating.isPublic() && !rating.getUserId().equals(requestingUserId)) {
+                rating.setComment(null);
+            }
+        }
+
+        return allRatings;
     }
 
     private void updateAverageScore(UUID mediaId) {

@@ -53,6 +53,14 @@ public class RatingController implements Controller {
                 return handleLikeRating(ratingId, userId.get());
             }
 
+            // DELETE /api/ratings/{id}/like - Unlike rating
+            if (pathSize == 4 && request.getPathParts().get(1).equals("ratings")
+                    && request.getPathParts().get(3).equals("like")
+                    && request.getMethod() == Method.DELETE) {
+                String ratingId = request.getPathParts().get(2);
+                return handleUnlikeRating(ratingId, userId.get());
+            }
+
             // POST /api/ratings/{id}/confirm - Confirm rating (make public)
             if (pathSize == 4 && request.getPathParts().get(1).equals("ratings")
                     && request.getPathParts().get(3).equals("confirm")
@@ -113,6 +121,23 @@ public class RatingController implements Controller {
 
             return new Response(HttpStatus.OK, ContentType.JSON,
                     "{\"message\": \"Rating liked successfully\"}");
+
+        } catch (IllegalArgumentException e) {
+            return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
+                    "{\"error\": \"" + e.getMessage() + "\"}");
+        } catch (Exception e) {
+            return new Response(HttpStatus.INTERNAL_SERVER_ERROR, ContentType.JSON,
+                    "{\"error\": \"An unexpected error occurred\"}");
+        }
+    }
+
+    private Response handleUnlikeRating(String ratingIdStr, UUID userId) {
+        try {
+            UUID ratingId = UUID.fromString(ratingIdStr);
+            ratingService.unlikeRating(ratingId, userId);
+
+            return new Response(HttpStatus.OK, ContentType.JSON,
+                    "{\"message\": \"Rating unliked successfully\"}");
 
         } catch (IllegalArgumentException e) {
             return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,

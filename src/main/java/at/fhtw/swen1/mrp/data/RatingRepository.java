@@ -225,6 +225,24 @@ public class RatingRepository implements Repository<Rating> {
         }
     }
 
+    public boolean hasUserLiked(UUID ratingId, UUID userId) {
+        String sql = "SELECT 1 FROM rating_likes WHERE rating_id = ? AND user_id = ?";
+
+        try (Connection conn = dbConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setObject(1, ratingId);
+            stmt.setObject(2, userId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Error checking like: " + e.getMessage(), e);
+        }
+    }
+
     private Rating mapResultSetToRating(ResultSet rs) throws SQLException {
         return new Rating(
                 (UUID) rs.getObject("id"),

@@ -89,6 +89,15 @@ public class MediaController implements Controller  {
                 return handleRateMedia(request, mediaId, userId.get());
             }
 
+            // GET /api/media/{id}/ratings - Get all ratings for media
+            if (pathSize == 4 && request.getPathParts().get(1).equals("media")
+                    && request.getPathParts().get(3).equals("ratings")
+                    && request.getMethod() == Method.GET) {
+
+                String mediaId = request.getPathParts().get(2);
+                return handleGetMediaRatings(mediaId, userId.get());
+            }
+
             return new Response(HttpStatus.NOT_FOUND, ContentType.JSON,
                     "{\"error\": \"Endpoint not found\"}");
 
@@ -256,6 +265,26 @@ public class MediaController implements Controller  {
         } catch (IllegalArgumentException e) {
             return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
                     "{\"error\": \"" + e.getMessage() + "\"}");
+        } catch (Exception e) {
+            return new Response(HttpStatus.INTERNAL_SERVER_ERROR, ContentType.JSON,
+                    "{\"error\": \"An unexpected error occurred\"}");
+        }
+    }
+
+    private Response handleGetMediaRatings(String mediaIdStr, UUID requestingUserId) {
+        try {
+            UUID mediaId = UUID.fromString(mediaIdStr);
+            List<Rating> ratings = ratingService.getPublicRatingsForMedia(mediaId, requestingUserId);
+            List<RatingDTO> dtoList = ratings.stream()
+                    .map(RatingDTO::new)
+                    .toList();
+
+            return new Response(HttpStatus.OK, ContentType.JSON,
+                    objectMapper.writeValueAsString(dtoList));
+
+        } catch (IllegalArgumentException e) {
+            return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
+                    "{\"error\": \"Invalid media ID format\"}");
         } catch (Exception e) {
             return new Response(HttpStatus.INTERNAL_SERVER_ERROR, ContentType.JSON,
                     "{\"error\": \"An unexpected error occurred\"}");
