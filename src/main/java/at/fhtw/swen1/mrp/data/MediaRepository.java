@@ -138,6 +138,99 @@ public class MediaRepository implements Repository<MediaEntry> {
         }
     }
 
+    public List<MediaEntry> search(String title, String genre, String mediaType,
+                                    Integer releaseYear, Integer ageRestriction, Double rating,
+                                    String sortBy, String sortOrder) {
+
+        StringBuilder sql = new StringBuilder(
+                "SELECT DISTINCT m.id, m.title, m.description, m.media_type, m.release_year, " +
+                        "m.age_restriction, m.average_score, m.creator_id FROM media_entries m ");
+
+        boolean hasGenreFilter = genre != null && !genre.isEmpty();
+        boolean hasTitleFilter = title != null && !title.isEmpty();
+        boolean hasMediaTypeFilter = mediaType != null && !mediaType.isEmpty();
+
+        if (hasGenreFilter) {
+            sql.append("JOIN media_genres g ON m.id = g.media_id ");
+        }
+
+        sql.append("WHERE 1=1 ");
+
+        if (hasTitleFilter) {
+            sql.append("AND LOWER(m.title) LIKE LOWER(?) ");
+        }
+        if (hasGenreFilter) {
+            sql.append("AND LOWER(g.genre) = LOWER(?) ");
+        }
+        if (hasMediaTypeFilter) {
+            sql.append("AND m.media_type = ? ");
+        }
+        if (releaseYear != null) {
+            sql.append("AND m.release_year = ? ");
+        }
+        if (ageRestriction != null) {
+            sql.append("AND m.age_restriction <= ? ");
+        }
+        if (rating != null) {
+            sql.append("AND m.average_score >= ? ");
+        }
+
+        if (sortBy != null && sortBy.equalsIgnoreCase("year")) {
+            sql.append("ORDER BY m.release_year ");
+        } else if (sortBy != null && sortBy.equalsIgnoreCase("score")) {
+            sql.append("ORDER BY m.average_score ");
+        } else if (sortBy != null && sortBy.equalsIgnoreCase("title")) {
+            sql.append("ORDER BY m.title ");
+        } else {
+            sql.append("ORDER BY m.title ");
+        }
+
+        if (sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+            sql.append("DESC");
+        } else {
+            sql.append("ASC");
+        }
+
+        List<MediaEntry> results = new ArrayList<>();
+
+        try (Connection conn = dbConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+
+            int paramIndex = 1;
+            if (hasTitleFilter) {
+                stmt.setString(paramIndex++, "%" + title + "%");
+            }
+            if (hasGenreFilter) {
+                stmt.setString(paramIndex++, genre);
+            }
+            if (hasMediaTypeFilter) {
+                stmt.setString(paramIndex++, mediaType.toUpperCase());
+            }
+            if (releaseYear != null) {
+                stmt.setInt(paramIndex++, releaseYear);
+            }
+            if (ageRestriction != null) {
+                stmt.setInt(paramIndex++, ageRestriction);
+            }
+            if (rating != null) {
+                stmt.setDouble(paramIndex++, rating);
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    MediaEntry entry = mapResultSetToMediaEntry(rs);
+                    entry.setGenres(loadGenres(entry.getId()));
+                    results.add(entry);
+                }
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Error searching media: " + e.getMessage(), e);
+        }
+
+        return results;
+    }
+
     private void saveGenres(Connection conn, MediaEntry mediaEntry) throws SQLException {
         String deleteSql = "DELETE FROM media_genres WHERE media_id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(deleteSql)) {

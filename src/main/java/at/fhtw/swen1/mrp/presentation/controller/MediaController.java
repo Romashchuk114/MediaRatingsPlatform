@@ -54,10 +54,10 @@ public class MediaController implements Controller  {
                 return handleCreateMedia(request, userId.get());
             }
 
-            // GET /api/media - Get all media
+            // GET /api/media - Get all media or search with filters
             if (pathSize == 2 && request.getPathParts().get(1).equals("media")
                     && request.getMethod() == Method.GET) {
-                return handleGetAllMedia();
+                return handleGetAllMediaOrSearch(request);
             }
 
             // GET /api/media/{id} - Get media by ID
@@ -170,22 +170,54 @@ public class MediaController implements Controller  {
         }
     }
 
-    private Response handleGetAllMedia() {
+    private Response handleGetAllMediaOrSearch(Request request) {
         try {
-            List<MediaEntry> mediaList = mediaService.getAllMedia();
-            List<MediaEntryDTO> dtoList = mediaList.stream()
+            String title = request.getQueryParam("title");
+            String genre = request.getQueryParam("genre");
+            String mediaType = request.getQueryParam("mediaType");
+            String sortBy = request.getQueryParam("sortBy");
+            String sortOrder = request.getQueryParam("sortOrder");
+
+            Integer releaseYear = parseInteger(request.getQueryParam("releaseYear"));
+            Integer ageRestriction = parseInteger(request.getQueryParam("ageRestriction"));
+            Double rating = parseDouble(request.getQueryParam("rating"));
+
+            List<MediaEntry> results = mediaService.searchMedia(
+                    title, genre, mediaType, releaseYear, ageRestriction, rating, sortBy, sortOrder
+            );
+
+            List<MediaEntryDTO> dtoList = results.stream()
                     .map(MediaEntryDTO::new)
                     .toList();
 
-            return new Response(
-                    HttpStatus.OK,
-                    ContentType.JSON,
-                    objectMapper.writeValueAsString(dtoList)
-            );
+            return new Response(HttpStatus.OK, ContentType.JSON,
+                    objectMapper.writeValueAsString(dtoList));
 
         } catch (Exception e) {
             return new Response(HttpStatus.INTERNAL_SERVER_ERROR, ContentType.JSON,
-                    "{\"error\": \"Error retrieving media list\"}");
+                    "{\"error\": \"Error retrieving media\"}");
+        }
+    }
+
+    private Integer parseInteger(String value) {
+        if (value == null || value.isEmpty()) {
+            return null;
+        }
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private Double parseDouble(String value) {
+        if (value == null || value.isEmpty()) {
+            return null;
+        }
+        try {
+            return Double.parseDouble(value);
+        } catch (NumberFormatException e) {
+            return null;
         }
     }
 

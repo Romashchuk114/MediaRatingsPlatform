@@ -62,6 +62,12 @@ public class MediaService {
         return mediaRepository.findAll();
     }
 
+    public List<MediaEntry> searchMedia(String title, String genre, String mediaType,
+                                        Integer releaseYear, Integer ageRestriction, Double rating,
+                                        String sortBy, String sortOrder) {
+        return mediaRepository.search(title, genre, mediaType, releaseYear, ageRestriction, rating, sortBy, sortOrder);
+    }
+
     public MediaEntry updateMedia(UUID mediaId, String title, String description,
                                   String mediaTypeStr, int releaseYear,
                                   List<String> genres, int ageRestriction,
