@@ -9,7 +9,9 @@ public class User {
 
     private UUID id;
     private String username;
-    private String password;    //TODO passwort hashen
+    private String password;
+    private String email;
+    private String favoriteGenre;
 
     public User(String username, String password) {
         this.id = UuidCreator.getTimeOrderedEpoch();
@@ -21,6 +23,14 @@ public class User {
         this.id = id;
         this.username = username;
         this.password = password;
+    }
+
+    public User(UUID id, String username, String password, String email, String favoriteGenre) {
+        this.id = id;
+        this.username = username;
+        this.password = password;
+        this.email = email;
+        this.favoriteGenre = favoriteGenre;
     }
 
     public UUID getId() {
@@ -35,11 +45,27 @@ public class User {
         return password;
     }
 
+    public String getEmail() {
+        return email;
+    }
+
+    public String getFavoriteGenre() {
+        return favoriteGenre;
+    }
+
     public void setUsername(String username) {
         this.username = username;
     }
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setFavoriteGenre(String favoriteGenre) {
+        this.favoriteGenre = favoriteGenre;
     }
 }

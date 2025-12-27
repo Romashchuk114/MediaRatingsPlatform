@@ -169,4 +169,21 @@ public class RatingService {
             mediaRepository.save(media);
         }
     }
+
+    public int getTotalRatingsForUser(UUID userId) {
+        return ratingRepository.findByUserId(userId).size();
+    }
+
+    public double getAverageScoreForUser(UUID userId) {
+        List<Rating> ratings = ratingRepository.findByUserId(userId);
+        if (ratings.isEmpty()) {
+            return 0.0;
+        }
+
+        int totalStars = 0;
+        for (Rating rating : ratings) {
+            totalStars += rating.getStars();
+        }
+        return (double) totalStars / ratings.size();
+    }
 }

@@ -5,6 +5,7 @@ import at.fhtw.swen1.mrp.business.Rating;
 import at.fhtw.swen1.mrp.business.User;
 import at.fhtw.swen1.mrp.presentation.dto.AuthResponse;
 import at.fhtw.swen1.mrp.presentation.dto.MediaEntryDTO;
+import at.fhtw.swen1.mrp.presentation.dto.ProfileDTO;
 import at.fhtw.swen1.mrp.presentation.dto.RatingDTO;
 import at.fhtw.swen1.mrp.presentation.dto.UserCredentialsRequest;
 import at.fhtw.swen1.mrp.presentation.httpserver.http.ContentType;
@@ -79,6 +80,22 @@ public class UserController implements Controller {
                     request.getMethod() == Method.GET) {
                 String userId = request.getPathParts().get(2);
                 return handleGetUserFavorites(userId);
+            }
+
+            // GET /api/users/{id}/profile - Get user profile
+            if (pathSize == 4 && request.getPathParts().get(1).equals("users") &&
+                    request.getPathParts().get(3).equals("profile") &&
+                    request.getMethod() == Method.GET) {
+                String userId = request.getPathParts().get(2);
+                return handleGetProfile(userId);
+            }
+
+            // PUT /api/users/{id}/profile - Update user profile
+            if (pathSize == 4 && request.getPathParts().get(1).equals("users") &&
+                    request.getPathParts().get(3).equals("profile") &&
+                    request.getMethod() == Method.PUT) {
+                String userId = request.getPathParts().get(2);
+                return handleUpdateProfile(request, userId, authenticatedUserId.get());
             }
 
             return new Response(HttpStatus.NOT_FOUND, ContentType.JSON,
@@ -187,6 +204,67 @@ public class UserController implements Controller {
             return new Response(HttpStatus.INTERNAL_SERVER_ERROR, ContentType.JSON,
                     "{\"error\": \"An unexpected error occurred\"}");
         }
+    }
+
+    private Response handleGetProfile(String userIdStr) {
+        try {
+            UUID userId = UUID.fromString(userIdStr);
+            Optional<User> userOpt = userService.getUserById(userId);
+
+            if (userOpt.isEmpty()) {
+                return new Response(HttpStatus.NOT_FOUND, ContentType.JSON,
+                        "{\"error\": \"User not found\"}");
+            }
+
+            ProfileDTO profile = buildProfileDTO(userOpt.get());
+
+            return new Response(HttpStatus.OK, ContentType.JSON,
+                    objectMapper.writeValueAsString(profile));
+
+        } catch (IllegalArgumentException e) {
+            return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
+                    "{\"error\": \"Invalid user ID format\"}");
+        } catch (Exception e) {
+            return new Response(HttpStatus.INTERNAL_SERVER_ERROR, ContentType.JSON,
+                    "{\"error\": \"An unexpected error occurred\"}");
+        }
+    }
+
+    private Response handleUpdateProfile(Request request, String userIdStr, UUID authenticatedUserId) {
+        try {
+            UUID userId = UUID.fromString(userIdStr);
+
+            if (!userId.equals(authenticatedUserId)) {
+                return new Response(HttpStatus.FORBIDDEN, ContentType.JSON,
+                        "{\"error\": \"You can only update your own profile\"}");
+            }
+
+            ProfileDTO dto = objectMapper.readValue(request.getBody(), ProfileDTO.class);
+            User updatedUser = userService.updateProfile(userId, dto.getEmail(), dto.getFavoriteGenre());
+
+            ProfileDTO response = buildProfileDTO(updatedUser);
+
+            return new Response(HttpStatus.OK, ContentType.JSON,
+                    objectMapper.writeValueAsString(response));
+
+        } catch (IllegalArgumentException e) {
+            return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
+                    "{\"error\": \"" + e.getMessage() + "\"}");
+        } catch (Exception e) {
+            return new Response(HttpStatus.INTERNAL_SERVER_ERROR, ContentType.JSON,
+                    "{\"error\": \"An unexpected error occurred\"}");
+        }
+    }
+
+    private ProfileDTO buildProfileDTO(User user) {
+        ProfileDTO profile = new ProfileDTO();
+        profile.setId(user.getId());
+        profile.setUsername(user.getUsername());
+        profile.setEmail(user.getEmail());
+        profile.setFavoriteGenre(user.getFavoriteGenre());
+        profile.setTotalRatings(ratingService.getTotalRatingsForUser(user.getId()));
+        profile.setAverageScore(ratingService.getAverageScoreForUser(user.getId()));
+        return profile;
     }
 
     private Optional<UUID> validateToken(Request request) {

@@ -55,4 +55,16 @@ public class UserService {
         return userRepository.findByUsername(username);
     }
 
+    public User updateProfile(UUID userId, String email, String favoriteGenre) {
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) {
+            throw new IllegalArgumentException("User not found");
+        }
+
+        User user = userOpt.get();
+        user.setEmail(email);
+        user.setFavoriteGenre(favoriteGenre);
+
+        return userRepository.save(user);
+    }
 }

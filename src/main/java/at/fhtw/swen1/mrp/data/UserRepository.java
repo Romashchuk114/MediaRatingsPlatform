@@ -17,8 +17,9 @@ public class UserRepository implements Repository<User> {
 
     @Override
     public User save(User user) {
-        String sql = "INSERT INTO users (id, username, password) VALUES (?, ?, ?) " +
-                "ON CONFLICT (id) DO UPDATE SET username = EXCLUDED.username, password = EXCLUDED.password";
+        String sql = "INSERT INTO users (id, username, password, email, favorite_genre) VALUES (?, ?, ?, ?, ?) " +
+                "ON CONFLICT (id) DO UPDATE SET username = EXCLUDED.username, password = EXCLUDED.password, " +
+                "email = EXCLUDED.email, favorite_genre = EXCLUDED.favorite_genre";
 
         try (Connection conn = dbConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -26,6 +27,8 @@ public class UserRepository implements Repository<User> {
             stmt.setObject(1, user.getId());
             stmt.setString(2, user.getUsername());
             stmt.setString(3, user.getPassword());
+            stmt.setString(4, user.getEmail());
+            stmt.setString(5, user.getFavoriteGenre());
 
             stmt.executeUpdate();
             return user;
@@ -37,7 +40,7 @@ public class UserRepository implements Repository<User> {
 
     @Override
     public Optional<User> findById(UUID id) {
-        String sql = "SELECT id, username, password FROM users WHERE id = ?";
+        String sql = "SELECT id, username, password, email, favorite_genre FROM users WHERE id = ?";
 
         try (Connection conn = dbConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -58,7 +61,7 @@ public class UserRepository implements Repository<User> {
     }
 
     public Optional<User> findByUsername(String username) {
-        String sql = "SELECT id, username, password FROM users WHERE username = ?";
+        String sql = "SELECT id, username, password, email, favorite_genre FROM users WHERE username = ?";
 
         try (Connection conn = dbConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -119,7 +122,7 @@ public class UserRepository implements Repository<User> {
 
     @Override
     public List<User> findAll() {
-        String sql = "SELECT id, username, password FROM users";
+        String sql = "SELECT id, username, password, email, favorite_genre FROM users";
         List<User> users = new ArrayList<>();
 
         try (Connection conn = dbConnection.getConnection();
@@ -159,7 +162,9 @@ public class UserRepository implements Repository<User> {
         return new User(
                 (UUID) rs.getObject("id"),
                 rs.getString("username"),
-                rs.getString("password")
+                rs.getString("password"),
+                rs.getString("email"),
+                rs.getString("favorite_genre")
         );
     }
 }
