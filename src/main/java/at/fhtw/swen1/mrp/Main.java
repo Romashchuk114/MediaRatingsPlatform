@@ -1,6 +1,7 @@
 package at.fhtw.swen1.mrp;
 
 import at.fhtw.swen1.mrp.data.DatabaseConnection;
+import at.fhtw.swen1.mrp.data.FavoriteRepository;
 import at.fhtw.swen1.mrp.data.MediaRepository;
 import at.fhtw.swen1.mrp.data.RatingRepository;
 import at.fhtw.swen1.mrp.data.TokenRepository;
@@ -10,6 +11,7 @@ import at.fhtw.swen1.mrp.presentation.controller.RatingController;
 import at.fhtw.swen1.mrp.presentation.controller.UserController;
 import at.fhtw.swen1.mrp.presentation.httpserver.server.Server;
 import at.fhtw.swen1.mrp.presentation.httpserver.utils.Router;
+import at.fhtw.swen1.mrp.services.FavoriteService;
 import at.fhtw.swen1.mrp.services.MediaService;
 import at.fhtw.swen1.mrp.services.PasswordHasher;
 import at.fhtw.swen1.mrp.services.RatingService;
@@ -37,15 +39,17 @@ public class Main {
         MediaRepository mediaRepository = new MediaRepository(dbConnection);
         TokenRepository tokenRepository = new TokenRepository(dbConnection);
         RatingRepository ratingRepository = new RatingRepository(dbConnection);
+        FavoriteRepository favoriteRepository = new FavoriteRepository(dbConnection);
 
         PasswordHasher passwordHasher = new PasswordHasher();
         UserService userService = new UserService(userRepository, passwordHasher);
         MediaService mediaService = new MediaService(mediaRepository, userRepository);
         TokenService tokenService = new TokenService(tokenRepository);
         RatingService ratingService = new RatingService(ratingRepository, mediaRepository);
+        FavoriteService favoriteService = new FavoriteService(favoriteRepository, mediaRepository);
 
-        UserController userController = new UserController(userService, tokenService, ratingService);
-        MediaController mediaController = new MediaController(mediaService, ratingService, tokenService);
+        UserController userController = new UserController(userService, tokenService, ratingService, favoriteService);
+        MediaController mediaController = new MediaController(mediaService, ratingService, favoriteService, tokenService);
         RatingController ratingController = new RatingController(ratingService, tokenService);
 
         Router router = new Router();

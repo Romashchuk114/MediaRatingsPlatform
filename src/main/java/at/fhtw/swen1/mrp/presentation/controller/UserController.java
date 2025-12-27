@@ -1,8 +1,10 @@
 package at.fhtw.swen1.mrp.presentation.controller;
 
+import at.fhtw.swen1.mrp.business.MediaEntry;
 import at.fhtw.swen1.mrp.business.Rating;
 import at.fhtw.swen1.mrp.business.User;
 import at.fhtw.swen1.mrp.presentation.dto.AuthResponse;
+import at.fhtw.swen1.mrp.presentation.dto.MediaEntryDTO;
 import at.fhtw.swen1.mrp.presentation.dto.RatingDTO;
 import at.fhtw.swen1.mrp.presentation.dto.UserCredentialsRequest;
 import at.fhtw.swen1.mrp.presentation.httpserver.http.ContentType;
@@ -10,6 +12,7 @@ import at.fhtw.swen1.mrp.presentation.httpserver.http.HttpStatus;
 import at.fhtw.swen1.mrp.presentation.httpserver.http.Method;
 import at.fhtw.swen1.mrp.presentation.httpserver.server.Request;
 import at.fhtw.swen1.mrp.presentation.httpserver.server.Response;
+import at.fhtw.swen1.mrp.services.FavoriteService;
 import at.fhtw.swen1.mrp.services.RatingService;
 import at.fhtw.swen1.mrp.services.TokenService;
 import at.fhtw.swen1.mrp.services.UserService;
@@ -25,12 +28,14 @@ public class UserController implements Controller {
     private final UserService userService;
     private final TokenService tokenService;
     private final RatingService ratingService;
+    private final FavoriteService favoriteService;
     private final ObjectMapper objectMapper;
 
-    public UserController(UserService userService, TokenService tokenService, RatingService ratingService) {
+    public UserController(UserService userService, TokenService tokenService, RatingService ratingService, FavoriteService favoriteService) {
         this.userService = userService;
         this.tokenService = tokenService;
         this.ratingService = ratingService;
+        this.favoriteService = favoriteService;
         this.objectMapper = new ObjectMapper();
         this.objectMapper.registerModule(new JavaTimeModule());
     }
@@ -66,6 +71,14 @@ public class UserController implements Controller {
                     request.getMethod() == Method.GET) {
                 String userId = request.getPathParts().get(2);
                 return handleGetUserRatings(userId, authenticatedUserId.get());
+            }
+
+            // GET /api/users/{id}/favorites - Get user's favorites
+            if (pathSize == 4 && request.getPathParts().get(1).equals("users") &&
+                    request.getPathParts().get(3).equals("favorites") &&
+                    request.getMethod() == Method.GET) {
+                String userId = request.getPathParts().get(2);
+                return handleGetUserFavorites(userId);
             }
 
             return new Response(HttpStatus.NOT_FOUND, ContentType.JSON,
@@ -142,6 +155,26 @@ public class UserController implements Controller {
             List<Rating> ratings = ratingService.getRatingsByUserId(userId, requestingUserId);
             List<RatingDTO> dtoList = ratings.stream()
                     .map(RatingDTO::new)
+                    .toList();
+
+            return new Response(HttpStatus.OK, ContentType.JSON,
+                    objectMapper.writeValueAsString(dtoList));
+
+        } catch (IllegalArgumentException e) {
+            return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
+                    "{\"error\": \"Invalid user ID format\"}");
+        } catch (Exception e) {
+            return new Response(HttpStatus.INTERNAL_SERVER_ERROR, ContentType.JSON,
+                    "{\"error\": \"An unexpected error occurred\"}");
+        }
+    }
+
+    private Response handleGetUserFavorites(String userIdStr) {
+        try {
+            UUID userId = UUID.fromString(userIdStr);
+            List<MediaEntry> favorites = favoriteService.getFavoritesByUserId(userId);
+            List<MediaEntryDTO> dtoList = favorites.stream()
+                    .map(MediaEntryDTO::new)
                     .toList();
 
             return new Response(HttpStatus.OK, ContentType.JSON,

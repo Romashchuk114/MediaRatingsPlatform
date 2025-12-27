@@ -9,6 +9,7 @@ import at.fhtw.swen1.mrp.presentation.httpserver.http.HttpStatus;
 import at.fhtw.swen1.mrp.presentation.httpserver.http.Method;
 import at.fhtw.swen1.mrp.presentation.httpserver.server.Request;
 import at.fhtw.swen1.mrp.presentation.httpserver.server.Response;
+import at.fhtw.swen1.mrp.services.FavoriteService;
 import at.fhtw.swen1.mrp.services.MediaService;
 import at.fhtw.swen1.mrp.services.RatingService;
 import at.fhtw.swen1.mrp.services.TokenService;
@@ -23,12 +24,14 @@ import java.util.UUID;
 public class MediaController implements Controller  {
     private final MediaService mediaService;
     private final RatingService ratingService;
+    private final FavoriteService favoriteService;
     private final TokenService tokenService;
     private final ObjectMapper objectMapper;
 
-    public MediaController(MediaService mediaService, RatingService ratingService, TokenService tokenService) {
+    public MediaController(MediaService mediaService, RatingService ratingService, FavoriteService favoriteService, TokenService tokenService) {
         this.mediaService = mediaService;
         this.ratingService = ratingService;
+        this.favoriteService = favoriteService;
         this.tokenService = tokenService;
         this.objectMapper = new ObjectMapper();
         this.objectMapper.registerModule(new JavaTimeModule());
@@ -96,6 +99,24 @@ public class MediaController implements Controller  {
 
                 String mediaId = request.getPathParts().get(2);
                 return handleGetMediaRatings(mediaId, userId.get());
+            }
+
+            // POST /api/media/{id}/favorite - Mark as favorite
+            if (pathSize == 4 && request.getPathParts().get(1).equals("media")
+                    && request.getPathParts().get(3).equals("favorite")
+                    && request.getMethod() == Method.POST) {
+
+                String mediaId = request.getPathParts().get(2);
+                return handleAddFavorite(mediaId, userId.get());
+            }
+
+            // DELETE /api/media/{id}/favorite - Unmark as favorite
+            if (pathSize == 4 && request.getPathParts().get(1).equals("media")
+                    && request.getPathParts().get(3).equals("favorite")
+                    && request.getMethod() == Method.DELETE) {
+
+                String mediaId = request.getPathParts().get(2);
+                return handleRemoveFavorite(mediaId, userId.get());
             }
 
             return new Response(HttpStatus.NOT_FOUND, ContentType.JSON,
@@ -285,6 +306,40 @@ public class MediaController implements Controller  {
         } catch (IllegalArgumentException e) {
             return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
                     "{\"error\": \"Invalid media ID format\"}");
+        } catch (Exception e) {
+            return new Response(HttpStatus.INTERNAL_SERVER_ERROR, ContentType.JSON,
+                    "{\"error\": \"An unexpected error occurred\"}");
+        }
+    }
+
+    private Response handleAddFavorite(String mediaIdStr, UUID userId) {
+        try {
+            UUID mediaId = UUID.fromString(mediaIdStr);
+            favoriteService.addFavorite(userId, mediaId);
+
+            return new Response(HttpStatus.OK, ContentType.JSON,
+                    "{\"message\": \"Media added to favorites\"}");
+
+        } catch (IllegalArgumentException e) {
+            return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
+                    "{\"error\": \"" + e.getMessage() + "\"}");
+        } catch (Exception e) {
+            return new Response(HttpStatus.INTERNAL_SERVER_ERROR, ContentType.JSON,
+                    "{\"error\": \"An unexpected error occurred\"}");
+        }
+    }
+
+    private Response handleRemoveFavorite(String mediaIdStr, UUID userId) {
+        try {
+            UUID mediaId = UUID.fromString(mediaIdStr);
+            favoriteService.removeFavorite(userId, mediaId);
+
+            return new Response(HttpStatus.OK, ContentType.JSON,
+                    "{\"message\": \"Media removed from favorites\"}");
+
+        } catch (IllegalArgumentException e) {
+            return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
+                    "{\"error\": \"" + e.getMessage() + "\"}");
         } catch (Exception e) {
             return new Response(HttpStatus.INTERNAL_SERVER_ERROR, ContentType.JSON,
                     "{\"error\": \"An unexpected error occurred\"}");
