@@ -15,6 +15,7 @@ import at.fhtw.swen1.mrp.presentation.httpserver.server.Request;
 import at.fhtw.swen1.mrp.presentation.httpserver.server.Response;
 import at.fhtw.swen1.mrp.services.FavoriteService;
 import at.fhtw.swen1.mrp.services.RatingService;
+import at.fhtw.swen1.mrp.services.RecommendationService;
 import at.fhtw.swen1.mrp.services.TokenService;
 import at.fhtw.swen1.mrp.services.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,13 +31,16 @@ public class UserController implements Controller {
     private final TokenService tokenService;
     private final RatingService ratingService;
     private final FavoriteService favoriteService;
+    private final RecommendationService recommendationService;
     private final ObjectMapper objectMapper;
 
-    public UserController(UserService userService, TokenService tokenService, RatingService ratingService, FavoriteService favoriteService) {
+    public UserController(UserService userService, TokenService tokenService, RatingService ratingService,
+                          FavoriteService favoriteService, RecommendationService recommendationService) {
         this.userService = userService;
         this.tokenService = tokenService;
         this.ratingService = ratingService;
         this.favoriteService = favoriteService;
+        this.recommendationService = recommendationService;
         this.objectMapper = new ObjectMapper();
         this.objectMapper.registerModule(new JavaTimeModule());
     }
@@ -96,6 +100,15 @@ public class UserController implements Controller {
                     request.getMethod() == Method.PUT) {
                 String userId = request.getPathParts().get(2);
                 return handleUpdateProfile(request, userId, authenticatedUserId.get());
+            }
+
+            // GET /api/users/{id}/recommendations?type=genre|content
+            if (pathSize == 4 && request.getPathParts().get(1).equals("users") &&
+                    request.getPathParts().get(3).equals("recommendations") &&
+                    request.getMethod() == Method.GET) {
+                String userId = request.getPathParts().get(2);
+                String type = request.getQueryParam("type");
+                return handleGetRecommendations(userId, type);
             }
 
             return new Response(HttpStatus.NOT_FOUND, ContentType.JSON,
@@ -250,6 +263,33 @@ public class UserController implements Controller {
         } catch (IllegalArgumentException e) {
             return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
                     "{\"error\": \"" + e.getMessage() + "\"}");
+        } catch (Exception e) {
+            return new Response(HttpStatus.INTERNAL_SERVER_ERROR, ContentType.JSON,
+                    "{\"error\": \"An unexpected error occurred\"}");
+        }
+    }
+
+    private Response handleGetRecommendations(String userIdStr, String type) {
+        try {
+            UUID userId = UUID.fromString(userIdStr);
+
+            List<MediaEntry> recommendations;
+            if (type != null && type.equalsIgnoreCase("content")) {
+                recommendations = recommendationService.getContentBasedRecommendations(userId);
+            } else {
+                recommendations = recommendationService.getGenreBasedRecommendations(userId);
+            }
+
+            List<MediaEntryDTO> dtoList = recommendations.stream()
+                    .map(MediaEntryDTO::new)
+                    .toList();
+
+            return new Response(HttpStatus.OK, ContentType.JSON,
+                    objectMapper.writeValueAsString(dtoList));
+
+        } catch (IllegalArgumentException e) {
+            return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
+                    "{\"error\": \"Invalid user ID format\"}");
         } catch (Exception e) {
             return new Response(HttpStatus.INTERNAL_SERVER_ERROR, ContentType.JSON,
                     "{\"error\": \"An unexpected error occurred\"}");

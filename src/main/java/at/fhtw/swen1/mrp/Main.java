@@ -15,6 +15,7 @@ import at.fhtw.swen1.mrp.presentation.httpserver.utils.Router;
 import at.fhtw.swen1.mrp.services.FavoriteService;
 import at.fhtw.swen1.mrp.services.LeaderboardService;
 import at.fhtw.swen1.mrp.services.MediaService;
+import at.fhtw.swen1.mrp.services.RecommendationService;
 import at.fhtw.swen1.mrp.services.PasswordHasher;
 import at.fhtw.swen1.mrp.services.RatingService;
 import at.fhtw.swen1.mrp.services.TokenService;
@@ -50,8 +51,9 @@ public class Main {
         RatingService ratingService = new RatingService(ratingRepository, mediaRepository);
         FavoriteService favoriteService = new FavoriteService(favoriteRepository, mediaRepository);
         LeaderboardService leaderboardService = new LeaderboardService(ratingRepository, userRepository);
+        RecommendationService recommendationService = new RecommendationService(ratingRepository, mediaRepository);
 
-        UserController userController = new UserController(userService, tokenService, ratingService, favoriteService);
+        UserController userController = new UserController(userService, tokenService, ratingService, favoriteService, recommendationService);
         MediaController mediaController = new MediaController(mediaService, ratingService, favoriteService, tokenService);
         RatingController ratingController = new RatingController(ratingService, tokenService);
         LeaderboardController leaderboardController = new LeaderboardController(leaderboardService);
