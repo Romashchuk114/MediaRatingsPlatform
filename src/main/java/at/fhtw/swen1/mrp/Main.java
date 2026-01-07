@@ -6,12 +6,14 @@ import at.fhtw.swen1.mrp.data.MediaRepository;
 import at.fhtw.swen1.mrp.data.RatingRepository;
 import at.fhtw.swen1.mrp.data.TokenRepository;
 import at.fhtw.swen1.mrp.data.UserRepository;
+import at.fhtw.swen1.mrp.presentation.controller.LeaderboardController;
 import at.fhtw.swen1.mrp.presentation.controller.MediaController;
 import at.fhtw.swen1.mrp.presentation.controller.RatingController;
 import at.fhtw.swen1.mrp.presentation.controller.UserController;
 import at.fhtw.swen1.mrp.presentation.httpserver.server.Server;
 import at.fhtw.swen1.mrp.presentation.httpserver.utils.Router;
 import at.fhtw.swen1.mrp.services.FavoriteService;
+import at.fhtw.swen1.mrp.services.LeaderboardService;
 import at.fhtw.swen1.mrp.services.MediaService;
 import at.fhtw.swen1.mrp.services.PasswordHasher;
 import at.fhtw.swen1.mrp.services.RatingService;
@@ -47,10 +49,12 @@ public class Main {
         TokenService tokenService = new TokenService(tokenRepository);
         RatingService ratingService = new RatingService(ratingRepository, mediaRepository);
         FavoriteService favoriteService = new FavoriteService(favoriteRepository, mediaRepository);
+        LeaderboardService leaderboardService = new LeaderboardService(ratingRepository, userRepository);
 
         UserController userController = new UserController(userService, tokenService, ratingService, favoriteService);
         MediaController mediaController = new MediaController(mediaService, ratingService, favoriteService, tokenService);
         RatingController ratingController = new RatingController(ratingService, tokenService);
+        LeaderboardController leaderboardController = new LeaderboardController(leaderboardService);
 
         Router router = new Router();
 
@@ -58,6 +62,7 @@ public class Main {
         router.addController("/api/users", userController);
         router.addController("/api/media", mediaController);
         router.addController("/api/ratings", ratingController);
+        router.addController("/api/leaderboard", leaderboardController);
 
         Server server = new Server(8080, router);
 

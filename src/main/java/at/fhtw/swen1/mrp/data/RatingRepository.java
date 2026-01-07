@@ -243,6 +243,28 @@ public class RatingRepository implements Repository<Rating> {
         }
     }
 
+    public List<Object[]> getRatingCountsPerUser() {
+        String sql = "SELECT user_id, COUNT(*) as rating_count FROM ratings GROUP BY user_id ORDER BY rating_count DESC";
+        List<Object[]> results = new ArrayList<>();
+
+        try (Connection conn = dbConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                Object[] row = new Object[2];
+                row[0] = (UUID) rs.getObject("user_id");
+                row[1] = rs.getInt("rating_count");
+                results.add(row);
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Error getting rating counts per user: " + e.getMessage(), e);
+        }
+
+        return results;
+    }
+
     private Rating mapResultSetToRating(ResultSet rs) throws SQLException {
         return new Rating(
                 (UUID) rs.getObject("id"),
