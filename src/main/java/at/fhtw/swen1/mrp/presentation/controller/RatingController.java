@@ -2,203 +2,88 @@ package at.fhtw.swen1.mrp.presentation.controller;
 
 import at.fhtw.swen1.mrp.business.Rating;
 import at.fhtw.swen1.mrp.presentation.dto.RatingDTO;
-import at.fhtw.swen1.mrp.presentation.httpserver.http.ContentType;
 import at.fhtw.swen1.mrp.presentation.httpserver.http.HttpStatus;
 import at.fhtw.swen1.mrp.presentation.httpserver.http.Method;
 import at.fhtw.swen1.mrp.presentation.httpserver.server.Request;
 import at.fhtw.swen1.mrp.presentation.httpserver.server.Response;
 import at.fhtw.swen1.mrp.services.RatingService;
 import at.fhtw.swen1.mrp.services.TokenService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import java.util.Optional;
 import java.util.UUID;
 
-public class RatingController implements Controller {
+public class RatingController extends BaseController {
     private final RatingService ratingService;
-    private final TokenService tokenService;
-    private final ObjectMapper objectMapper;
 
     public RatingController(RatingService ratingService, TokenService tokenService) {
+        super(tokenService);
         this.ratingService = ratingService;
-        this.tokenService = tokenService;
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.registerModule(new JavaTimeModule());
     }
 
     @Override
     public Response handleRequest(Request request) {
+        Optional<UUID> userId = validateToken(request);
+        if (userId.isEmpty()) {
+            return unauthorized();
+        }
+
         try {
-            int pathSize = request.getPathParts().size();
+            // /api/ratings/{id}
+            if (matchesRoute(request, Method.PUT, 3)) return handleUpdateRating(request, userId.get());
+            if (matchesRoute(request, Method.DELETE, 3)) return handleDeleteRating(request, userId.get());
 
-            Optional<UUID> userId = validateToken(request);
-            if (userId.isEmpty()) {
-                return new Response(HttpStatus.UNAUTHORIZED, ContentType.JSON,
-                        "{\"error\": \"Unauthorized - Invalid or missing token\"}");
-            }
+            // /api/ratings/{id}/like
+            if (matchesRoute(request, Method.POST, 4, "like")) return handleLikeRating(request, userId.get());
+            if (matchesRoute(request, Method.DELETE, 4, "like")) return handleUnlikeRating(request, userId.get());
 
-            // PUT /api/ratings/{id} - Update rating
-            if (pathSize == 3 && request.getPathParts().get(1).equals("ratings")
-                    && request.getMethod() == Method.PUT) {
-                String ratingId = request.getPathParts().get(2);
-                return handleUpdateRating(request, ratingId, userId.get());
-            }
+            // /api/ratings/{id}/confirm
+            if (matchesRoute(request, Method.POST, 4, "confirm")) return handleConfirmRating(request, userId.get());
 
-            // POST /api/ratings/{id}/like - Like rating
-            if (pathSize == 4 && request.getPathParts().get(1).equals("ratings")
-                    && request.getPathParts().get(3).equals("like")
-                    && request.getMethod() == Method.POST) {
-                String ratingId = request.getPathParts().get(2);
-                return handleLikeRating(ratingId, userId.get());
-            }
-
-            // DELETE /api/ratings/{id}/like - Unlike rating
-            if (pathSize == 4 && request.getPathParts().get(1).equals("ratings")
-                    && request.getPathParts().get(3).equals("like")
-                    && request.getMethod() == Method.DELETE) {
-                String ratingId = request.getPathParts().get(2);
-                return handleUnlikeRating(ratingId, userId.get());
-            }
-
-            // POST /api/ratings/{id}/confirm - Confirm rating (make public)
-            if (pathSize == 4 && request.getPathParts().get(1).equals("ratings")
-                    && request.getPathParts().get(3).equals("confirm")
-                    && request.getMethod() == Method.POST) {
-                String ratingId = request.getPathParts().get(2);
-                return handleConfirmRating(ratingId, userId.get());
-            }
-
-            // DELETE /api/ratings/{id} - Delete rating
-            if (pathSize == 3 && request.getPathParts().get(1).equals("ratings")
-                    && request.getMethod() == Method.DELETE) {
-                String ratingId = request.getPathParts().get(2);
-                return handleDeleteRating(ratingId, userId.get());
-            }
-
-            return new Response(HttpStatus.NOT_FOUND, ContentType.JSON,
-                    "{\"error\": \"Endpoint not found\"}");
+            return notFound("Endpoint not found");
 
         } catch (IllegalArgumentException e) {
-            return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
-                    "{\"error\": \"" + e.getMessage() + "\"}");
+            return badRequest(e.getMessage());
+        } catch (SecurityException e) {
+            return forbidden(e.getMessage());
         } catch (Exception e) {
-            return new Response(HttpStatus.INTERNAL_SERVER_ERROR, ContentType.JSON,
-                    "{\"error\": \"An unexpected error occurred\"}");
+            return error(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
         }
     }
 
-    private Response handleUpdateRating(Request request, String ratingIdStr, UUID userId) {
-        try {
-            UUID ratingId = UUID.fromString(ratingIdStr);
-            RatingDTO dto = objectMapper.readValue(request.getBody(), RatingDTO.class);
+    private Response handleUpdateRating(Request request, UUID userId) {
+        UUID ratingId = getUUIDFromPath(request, 2);
+        RatingDTO dto = fromJson(request.getBody(), RatingDTO.class);
 
-            Rating updatedRating = ratingService.updateRating(
-                    ratingId,
-                    userId,
-                    dto.getStars(),
-                    dto.getComment()
-            );
-
-            RatingDTO response = new RatingDTO(updatedRating);
-
-            return new Response(HttpStatus.OK, ContentType.JSON,
-                    objectMapper.writeValueAsString(response));
-
-        } catch (IllegalArgumentException e) {
-            return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
-                    "{\"error\": \"" + e.getMessage() + "\"}");
-        } catch (Exception e) {
-            return new Response(HttpStatus.INTERNAL_SERVER_ERROR, ContentType.JSON,
-                    "{\"error\": \"An unexpected error occurred\"}");
-        }
+        Rating updatedRating = ratingService.updateRating(ratingId, userId, dto.getStars(), dto.getComment());
+        return ok(new RatingDTO(updatedRating));
     }
 
-    private Response handleLikeRating(String ratingIdStr, UUID userId) {
-        try {
-            UUID ratingId = UUID.fromString(ratingIdStr);
-            ratingService.likeRating(ratingId, userId);
+    private Response handleDeleteRating(Request request, UUID userId) {
+        UUID ratingId = getUUIDFromPath(request, 2);
+        Optional<Rating> deletedRating = ratingService.deleteRating(ratingId, userId);
 
-            return new Response(HttpStatus.OK, ContentType.JSON,
-                    "{\"message\": \"Rating liked successfully\"}");
-
-        } catch (IllegalArgumentException e) {
-            return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
-                    "{\"error\": \"" + e.getMessage() + "\"}");
-        } catch (Exception e) {
-            return new Response(HttpStatus.INTERNAL_SERVER_ERROR, ContentType.JSON,
-                    "{\"error\": \"An unexpected error occurred\"}");
+        if (deletedRating.isEmpty()) {
+            return notFound("Rating not found");
         }
+
+        return ok(new RatingDTO(deletedRating.get()));
     }
 
-    private Response handleUnlikeRating(String ratingIdStr, UUID userId) {
-        try {
-            UUID ratingId = UUID.fromString(ratingIdStr);
-            ratingService.unlikeRating(ratingId, userId);
-
-            return new Response(HttpStatus.OK, ContentType.JSON,
-                    "{\"message\": \"Rating unliked successfully\"}");
-
-        } catch (IllegalArgumentException e) {
-            return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
-                    "{\"error\": \"" + e.getMessage() + "\"}");
-        } catch (Exception e) {
-            return new Response(HttpStatus.INTERNAL_SERVER_ERROR, ContentType.JSON,
-                    "{\"error\": \"An unexpected error occurred\"}");
-        }
+    private Response handleLikeRating(Request request, UUID userId) {
+        UUID ratingId = getUUIDFromPath(request, 2);
+        ratingService.likeRating(ratingId, userId);
+        return message(HttpStatus.OK, "Rating liked successfully");
     }
 
-    private Response handleConfirmRating(String ratingIdStr, UUID userId) {
-        try {
-            UUID ratingId = UUID.fromString(ratingIdStr);
-            Rating confirmedRating = ratingService.setPublic(ratingId, userId, true);
-
-            RatingDTO response = new RatingDTO(confirmedRating);
-
-            return new Response(HttpStatus.OK, ContentType.JSON,
-                    objectMapper.writeValueAsString(response));
-
-        } catch (IllegalArgumentException e) {
-            return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
-                    "{\"error\": \"" + e.getMessage() + "\"}");
-        } catch (Exception e) {
-            return new Response(HttpStatus.INTERNAL_SERVER_ERROR, ContentType.JSON,
-                    "{\"error\": \"An unexpected error occurred\"}");
-        }
+    private Response handleUnlikeRating(Request request, UUID userId) {
+        UUID ratingId = getUUIDFromPath(request, 2);
+        ratingService.unlikeRating(ratingId, userId);
+        return message(HttpStatus.OK, "Rating unliked successfully");
     }
 
-    private Response handleDeleteRating(String ratingIdStr, UUID userId) {
-        try {
-            UUID ratingId = UUID.fromString(ratingIdStr);
-            Optional<Rating> deletedRating = ratingService.deleteRating(ratingId, userId);
-
-            if (deletedRating.isEmpty()) {
-                return new Response(HttpStatus.NOT_FOUND, ContentType.JSON,
-                        "{\"error\": \"Rating not found\"}");
-            }
-
-            RatingDTO response = new RatingDTO(deletedRating.get());
-
-            return new Response(HttpStatus.OK, ContentType.JSON,
-                    objectMapper.writeValueAsString(response));
-
-        } catch (IllegalArgumentException e) {
-            return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
-                    "{\"error\": \"" + e.getMessage() + "\"}");
-        } catch (Exception e) {
-            return new Response(HttpStatus.INTERNAL_SERVER_ERROR, ContentType.JSON,
-                    "{\"error\": \"An unexpected error occurred\"}");
-        }
-    }
-
-    private Optional<UUID> validateToken(Request request) {
-        String authHeader = request.getHeader("authorization");
-
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return Optional.empty();
-        }
-
-        String token = authHeader.substring(7);
-        return tokenService.validateToken(token);
+    private Response handleConfirmRating(Request request, UUID userId) {
+        UUID ratingId = getUUIDFromPath(request, 2);
+        Rating confirmedRating = ratingService.setPublic(ratingId, userId, true);
+        return ok(new RatingDTO(confirmedRating));
     }
 }

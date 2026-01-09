@@ -56,7 +56,7 @@ public class Main {
         UserController userController = new UserController(userService, tokenService, ratingService, favoriteService, recommendationService);
         MediaController mediaController = new MediaController(mediaService, ratingService, favoriteService, tokenService);
         RatingController ratingController = new RatingController(ratingService, tokenService);
-        LeaderboardController leaderboardController = new LeaderboardController(leaderboardService);
+        LeaderboardController leaderboardController = new LeaderboardController(leaderboardService, tokenService);
 
         Router router = new Router();
 

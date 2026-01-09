@@ -8,7 +8,6 @@ import at.fhtw.swen1.mrp.presentation.dto.MediaEntryDTO;
 import at.fhtw.swen1.mrp.presentation.dto.ProfileDTO;
 import at.fhtw.swen1.mrp.presentation.dto.RatingDTO;
 import at.fhtw.swen1.mrp.presentation.dto.UserCredentialsRequest;
-import at.fhtw.swen1.mrp.presentation.httpserver.http.ContentType;
 import at.fhtw.swen1.mrp.presentation.httpserver.http.HttpStatus;
 import at.fhtw.swen1.mrp.presentation.httpserver.http.Method;
 import at.fhtw.swen1.mrp.presentation.httpserver.server.Request;
@@ -18,282 +17,163 @@ import at.fhtw.swen1.mrp.services.RatingService;
 import at.fhtw.swen1.mrp.services.RecommendationService;
 import at.fhtw.swen1.mrp.services.TokenService;
 import at.fhtw.swen1.mrp.services.UserService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-
-public class UserController implements Controller {
+public class UserController extends BaseController {
     private final UserService userService;
-    private final TokenService tokenService;
     private final RatingService ratingService;
     private final FavoriteService favoriteService;
     private final RecommendationService recommendationService;
-    private final ObjectMapper objectMapper;
 
     public UserController(UserService userService, TokenService tokenService, RatingService ratingService,
                           FavoriteService favoriteService, RecommendationService recommendationService) {
+        super(tokenService);
         this.userService = userService;
-        this.tokenService = tokenService;
         this.ratingService = ratingService;
         this.favoriteService = favoriteService;
         this.recommendationService = recommendationService;
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.registerModule(new JavaTimeModule());
     }
 
     @Override
     public Response handleRequest(Request request) {
         try {
-            int pathSize = request.getPathParts().size();
-
             // /api/users/register
-            if (pathSize == 3 && request.getPathParts().get(1).equals("users") &&
-                    request.getPathParts().get(2).equals("register") &&
-                    request.getMethod() == Method.POST) {
+            if (matchesRoute(request, Method.POST, 3, "register")) {
                 return handleRegister(request);
             }
 
             // /api/users/login
-            if (pathSize == 3 && request.getPathParts().get(1).equals("users") &&
-                    request.getPathParts().get(2).equals("login") &&
-                    request.getMethod() == Method.POST) {
+            if (matchesRoute(request, Method.POST, 3, "login")) {
                 return handleLogin(request);
             }
 
-            Optional<UUID> authenticatedUserId = validateToken(request);
-            if (authenticatedUserId.isEmpty()) {
-                return new Response(HttpStatus.UNAUTHORIZED, ContentType.JSON,
-                        "{\"error\": \"Unauthorized - Invalid or missing token\"}");
+            // Protected endpoints
+            Optional<UUID> userId = validateToken(request);
+            if (userId.isEmpty()) {
+                return unauthorized();
             }
 
-            // GET /api/users/{id}/ratings - Get user's rating history
-            if (pathSize == 4 && request.getPathParts().get(1).equals("users") &&
-                    request.getPathParts().get(3).equals("ratings") &&
-                    request.getMethod() == Method.GET) {
-                String userId = request.getPathParts().get(2);
-                return handleGetUserRatings(userId, authenticatedUserId.get());
+            if (matchesRoute(request, Method.GET, 4, "ratings")) {
+                return handleGetUserRatings(request, userId.get());
+            }
+            if (matchesRoute(request, Method.GET, 4, "favorites")) {
+                return handleGetUserFavorites(request);
+            }
+            if (matchesRoute(request, Method.GET, 4, "profile")) {
+                return handleGetProfile(request);
+            }
+            if (matchesRoute(request, Method.PUT, 4, "profile")) {
+                return handleUpdateProfile(request, userId.get());
+            }
+            if (matchesRoute(request, Method.GET, 4, "recommendations")) {
+                return handleGetRecommendations(request);
             }
 
-            // GET /api/users/{id}/favorites - Get user's favorites
-            if (pathSize == 4 && request.getPathParts().get(1).equals("users") &&
-                    request.getPathParts().get(3).equals("favorites") &&
-                    request.getMethod() == Method.GET) {
-                String userId = request.getPathParts().get(2);
-                return handleGetUserFavorites(userId);
-            }
+            return notFound("Endpoint not found");
 
-            // GET /api/users/{id}/profile - Get user profile
-            if (pathSize == 4 && request.getPathParts().get(1).equals("users") &&
-                    request.getPathParts().get(3).equals("profile") &&
-                    request.getMethod() == Method.GET) {
-                String userId = request.getPathParts().get(2);
-                return handleGetProfile(userId);
-            }
-
-            // PUT /api/users/{id}/profile - Update user profile
-            if (pathSize == 4 && request.getPathParts().get(1).equals("users") &&
-                    request.getPathParts().get(3).equals("profile") &&
-                    request.getMethod() == Method.PUT) {
-                String userId = request.getPathParts().get(2);
-                return handleUpdateProfile(request, userId, authenticatedUserId.get());
-            }
-
-            // GET /api/users/{id}/recommendations?type=genre|content
-            if (pathSize == 4 && request.getPathParts().get(1).equals("users") &&
-                    request.getPathParts().get(3).equals("recommendations") &&
-                    request.getMethod() == Method.GET) {
-                String userId = request.getPathParts().get(2);
-                String type = request.getQueryParam("type");
-                return handleGetRecommendations(userId, type);
-            }
-
-            return new Response(HttpStatus.NOT_FOUND, ContentType.JSON,
-                    "{\"error\": \"Endpoint not found\"}");
+        } catch (IllegalArgumentException e) {
+            return badRequest(e.getMessage());
         } catch (Exception e) {
-            return new Response(HttpStatus.INTERNAL_SERVER_ERROR, ContentType.JSON,
-                    "{\"error\": \"" + e.getMessage() + "\"}");
+            return error(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
         }
     }
 
     private Response handleRegister(Request request) {
-        try {
-            UserCredentialsRequest dto = objectMapper.readValue(request.getBody(), UserCredentialsRequest.class);
+        UserCredentialsRequest dto = fromJson(request.getBody(), UserCredentialsRequest.class);
 
-            if (!dto.isValid()) {
-                return new Response(HttpStatus.UNAUTHORIZED, ContentType.JSON,
-                        "{\"error\": \"Invalid credentials\"}");
-            }
-
-            User user = userService.registerUser(dto.getUsername(), dto.getPassword());
-
-            AuthResponse response = new AuthResponse(
-                    "User registered successfully",
-                    null,
-                    user.getUsername()
-            );
-
-            return new Response(HttpStatus.CREATED, ContentType.JSON, objectMapper.writeValueAsString(response));
-
-        } catch (Exception e) {
-            return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
-                    "{\"error\": \"Invalid request body\"}");
+        if (!dto.isValid()) {
+            return badRequest("Invalid credentials");
         }
 
-
+        User user = userService.registerUser(dto.getUsername(), dto.getPassword());
+        return message(HttpStatus.CREATED, "User: " + user.getUsername() + " registered successfully");
     }
 
     private Response handleLogin(Request request) {
-        try {
-            UserCredentialsRequest dto = objectMapper.readValue(
-                    request.getBody(), UserCredentialsRequest.class
-            );
+        UserCredentialsRequest dto = fromJson(request.getBody(), UserCredentialsRequest.class);
 
-            if (!dto.isValid()) {
-                return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
-                        "{\"error\": \"Invalid credentials\"}");
-            }
-
-            Optional<User> userOpt = userService.loginUser(dto.getUsername(), dto.getPassword());
-
-            if (userOpt.isEmpty()) {
-                return new Response(HttpStatus.UNAUTHORIZED, ContentType.JSON,
-                        "{\"error\": \"Invalid credentials\"}");
-            }
-            String token = tokenService.generateToken(userOpt.get().getUsername(), userOpt.get().getId());
-
-            AuthResponse response = new AuthResponse(
-                    "Login successful",
-                    token,
-                    userOpt.get().getUsername()
-            );
-
-            return new Response(HttpStatus.OK, ContentType.JSON, objectMapper.writeValueAsString(response));
-
-        } catch (Exception e) {
-            return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
-                    "{\"error\": \"Invalid request body\"}");
+        if (!dto.isValid()) {
+            return badRequest("Invalid credentials");
         }
+
+        Optional<User> userOpt = userService.loginUser(dto.getUsername(), dto.getPassword());
+
+        if (userOpt.isEmpty()) {
+            return unauthorized();
+        }
+
+        User user = userOpt.get();
+        String token = tokenService.generateToken(user.getUsername(), user.getId());
+
+        AuthResponse response = new AuthResponse("Login successful", token, user.getUsername());
+        return ok(response);
     }
 
-    private Response handleGetUserRatings(String userIdStr, UUID requestingUserId) {
-        try {
-            UUID userId = UUID.fromString(userIdStr);
-            List<Rating> ratings = ratingService.getRatingsByUserId(userId, requestingUserId);
-            List<RatingDTO> dtoList = ratings.stream()
-                    .map(RatingDTO::new)
-                    .toList();
+    private Response handleGetUserRatings(Request request, UUID requestingUserId) {
+        UUID userId = getUUIDFromPath(request, 2);
+        List<Rating> ratings = ratingService.getRatingsByUserId(userId, requestingUserId);
 
-            return new Response(HttpStatus.OK, ContentType.JSON,
-                    objectMapper.writeValueAsString(dtoList));
+        List<RatingDTO> dtoList = ratings.stream()
+                .map(RatingDTO::new)
+                .toList();
 
-        } catch (IllegalArgumentException e) {
-            return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
-                    "{\"error\": \"Invalid user ID format\"}");
-        } catch (Exception e) {
-            return new Response(HttpStatus.INTERNAL_SERVER_ERROR, ContentType.JSON,
-                    "{\"error\": \"An unexpected error occurred\"}");
-        }
+        return ok(dtoList);
     }
 
-    private Response handleGetUserFavorites(String userIdStr) {
-        try {
-            UUID userId = UUID.fromString(userIdStr);
-            List<MediaEntry> favorites = favoriteService.getFavoritesByUserId(userId);
-            List<MediaEntryDTO> dtoList = favorites.stream()
-                    .map(MediaEntryDTO::new)
-                    .toList();
+    private Response handleGetUserFavorites(Request request) {
+        UUID userId = getUUIDFromPath(request, 2);
+        List<MediaEntry> favorites = favoriteService.getFavoritesByUserId(userId);
 
-            return new Response(HttpStatus.OK, ContentType.JSON,
-                    objectMapper.writeValueAsString(dtoList));
+        List<MediaEntryDTO> dtoList = favorites.stream()
+                .map(MediaEntryDTO::new)
+                .toList();
 
-        } catch (IllegalArgumentException e) {
-            return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
-                    "{\"error\": \"Invalid user ID format\"}");
-        } catch (Exception e) {
-            return new Response(HttpStatus.INTERNAL_SERVER_ERROR, ContentType.JSON,
-                    "{\"error\": \"An unexpected error occurred\"}");
-        }
+        return ok(dtoList);
     }
 
-    private Response handleGetProfile(String userIdStr) {
-        try {
-            UUID userId = UUID.fromString(userIdStr);
-            Optional<User> userOpt = userService.getUserById(userId);
+    private Response handleGetProfile(Request request) {
+        UUID userId = getUUIDFromPath(request, 2);
+        Optional<User> userOpt = userService.getUserById(userId);
 
-            if (userOpt.isEmpty()) {
-                return new Response(HttpStatus.NOT_FOUND, ContentType.JSON,
-                        "{\"error\": \"User not found\"}");
-            }
-
-            ProfileDTO profile = buildProfileDTO(userOpt.get());
-
-            return new Response(HttpStatus.OK, ContentType.JSON,
-                    objectMapper.writeValueAsString(profile));
-
-        } catch (IllegalArgumentException e) {
-            return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
-                    "{\"error\": \"Invalid user ID format\"}");
-        } catch (Exception e) {
-            return new Response(HttpStatus.INTERNAL_SERVER_ERROR, ContentType.JSON,
-                    "{\"error\": \"An unexpected error occurred\"}");
+        if (userOpt.isEmpty()) {
+            return notFound("User not found");
         }
+
+        return ok(buildProfileDTO(userOpt.get()));
     }
 
-    private Response handleUpdateProfile(Request request, String userIdStr, UUID authenticatedUserId) {
-        try {
-            UUID userId = UUID.fromString(userIdStr);
+    private Response handleUpdateProfile(Request request, UUID authenticatedUserId) {
+        UUID userId = getUUIDFromPath(request, 2);
 
-            if (!userId.equals(authenticatedUserId)) {
-                return new Response(HttpStatus.FORBIDDEN, ContentType.JSON,
-                        "{\"error\": \"You can only update your own profile\"}");
-            }
-
-            ProfileDTO dto = objectMapper.readValue(request.getBody(), ProfileDTO.class);
-            User updatedUser = userService.updateProfile(userId, dto.getEmail(), dto.getFavoriteGenre());
-
-            ProfileDTO response = buildProfileDTO(updatedUser);
-
-            return new Response(HttpStatus.OK, ContentType.JSON,
-                    objectMapper.writeValueAsString(response));
-
-        } catch (IllegalArgumentException e) {
-            return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
-                    "{\"error\": \"" + e.getMessage() + "\"}");
-        } catch (Exception e) {
-            return new Response(HttpStatus.INTERNAL_SERVER_ERROR, ContentType.JSON,
-                    "{\"error\": \"An unexpected error occurred\"}");
+        if (!userId.equals(authenticatedUserId)) {
+            return forbidden("You can only update your own profile");
         }
+
+        ProfileDTO dto = fromJson(request.getBody(), ProfileDTO.class);
+        User updatedUser = userService.updateProfile(userId, dto.getEmail(), dto.getFavoriteGenre());
+
+        return ok(buildProfileDTO(updatedUser));
     }
 
-    private Response handleGetRecommendations(String userIdStr, String type) {
-        try {
-            UUID userId = UUID.fromString(userIdStr);
+    private Response handleGetRecommendations(Request request) {
+        UUID userId = getUUIDFromPath(request, 2);
+        String type = request.getQueryParam("type");
 
-            List<MediaEntry> recommendations;
-            if (type != null && type.equalsIgnoreCase("content")) {
-                recommendations = recommendationService.getContentBasedRecommendations(userId);
-            } else {
-                recommendations = recommendationService.getGenreBasedRecommendations(userId);
-            }
-
-            List<MediaEntryDTO> dtoList = recommendations.stream()
-                    .map(MediaEntryDTO::new)
-                    .toList();
-
-            return new Response(HttpStatus.OK, ContentType.JSON,
-                    objectMapper.writeValueAsString(dtoList));
-
-        } catch (IllegalArgumentException e) {
-            return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
-                    "{\"error\": \"Invalid user ID format\"}");
-        } catch (Exception e) {
-            return new Response(HttpStatus.INTERNAL_SERVER_ERROR, ContentType.JSON,
-                    "{\"error\": \"An unexpected error occurred\"}");
+        List<MediaEntry> recommendations;
+        if ("content".equalsIgnoreCase(type)) {
+            recommendations = recommendationService.getContentBasedRecommendations(userId);
+        } else {
+            recommendations = recommendationService.getGenreBasedRecommendations(userId);
         }
+
+        List<MediaEntryDTO> dtoList = recommendations.stream()
+                .map(MediaEntryDTO::new)
+                .toList();
+
+        return ok(dtoList);
     }
 
     private ProfileDTO buildProfileDTO(User user) {
@@ -307,14 +187,4 @@ public class UserController implements Controller {
         return profile;
     }
 
-    private Optional<UUID> validateToken(Request request) {
-        String authHeader = request.getHeader("authorization");
-
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return Optional.empty();
-        }
-
-        String token = authHeader.substring(7);
-        return tokenService.validateToken(token);
-    }
 }
