@@ -1,5 +1,6 @@
 package at.fhtw.swen1.mrp.presentation.controller;
 
+import at.fhtw.swen1.mrp.business.LeaderboardData;
 import at.fhtw.swen1.mrp.presentation.dto.LeaderboardEntryDTO;
 import at.fhtw.swen1.mrp.presentation.httpserver.http.ContentType;
 import at.fhtw.swen1.mrp.presentation.httpserver.http.HttpStatus;
@@ -38,7 +39,11 @@ public class LeaderboardController implements Controller {
 
     private Response handleGetLeaderboard() {
         try {
-            List<LeaderboardEntryDTO> leaderboard = leaderboardService.getLeaderboard();
+            List<LeaderboardData> leaderboardData = leaderboardService.getLeaderboard();
+
+            List<LeaderboardEntryDTO> leaderboard = leaderboardData.stream()
+                    .map(data -> new LeaderboardEntryDTO(data.rank(), data.username(), data.totalRatings()))
+                    .toList();
 
             return new Response(HttpStatus.OK, ContentType.JSON,
                     objectMapper.writeValueAsString(leaderboard));

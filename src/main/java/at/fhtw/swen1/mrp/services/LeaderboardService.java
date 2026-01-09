@@ -1,9 +1,9 @@
 package at.fhtw.swen1.mrp.services;
 
+import at.fhtw.swen1.mrp.business.LeaderboardData;
 import at.fhtw.swen1.mrp.business.User;
 import at.fhtw.swen1.mrp.data.RatingRepository;
 import at.fhtw.swen1.mrp.data.UserRepository;
-import at.fhtw.swen1.mrp.presentation.dto.LeaderboardEntryDTO;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,9 +19,9 @@ public class LeaderboardService {
         this.userRepository = userRepository;
     }
 
-    public List<LeaderboardEntryDTO> getLeaderboard() {
+    public List<LeaderboardData> getLeaderboard() {
         List<Object[]> ratingCounts = ratingRepository.getRatingCountsPerUser();
-        List<LeaderboardEntryDTO> leaderboard = new ArrayList<>();
+        List<LeaderboardData> leaderboard = new ArrayList<>();
 
         int rank = 1;
         for (Object[] row : ratingCounts) {
@@ -31,11 +31,7 @@ public class LeaderboardService {
             Optional<User> userOpt = userRepository.findById(userId);
             if (userOpt.isPresent()) {
                 User user = userOpt.get();
-                LeaderboardEntryDTO entry = new LeaderboardEntryDTO(
-                        rank,
-                        user.getUsername(),
-                        totalRatings
-                );
+                LeaderboardData entry = new LeaderboardData(rank, user.getUsername(), totalRatings);
                 leaderboard.add(entry);
                 rank++;
             }
