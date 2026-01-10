@@ -1,6 +1,7 @@
 package at.fhtw.swen1.mrp.data;
 
 import at.fhtw.swen1.mrp.business.Rating;
+import at.fhtw.swen1.mrp.business.UserRatingCount;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -45,7 +46,8 @@ public class RatingRepository implements Repository<Rating> {
 
     @Override
     public Optional<Rating> findById(UUID id) {
-        String sql = "SELECT id, media_id, user_id, stars, comment, is_public, created_at, updated_at " +
+        String sql = "SELECT id, media_id, user_id, stars, comment, is_public, created_at, updated_at, " +
+                "(SELECT COUNT(*) FROM rating_likes rl WHERE rl.rating_id = ratings.id) as like_count " +
                 "FROM ratings WHERE id = ?";
 
         try (Connection conn = dbConnection.getConnection();
@@ -68,7 +70,9 @@ public class RatingRepository implements Repository<Rating> {
 
     @Override
     public List<Rating> findAll() {
-        String sql = "SELECT id, media_id, user_id, stars, comment, is_public, created_at, updated_at FROM ratings";
+        String sql = "SELECT id, media_id, user_id, stars, comment, is_public, created_at, updated_at, " +
+                "(SELECT COUNT(*) FROM rating_likes rl WHERE rl.rating_id = ratings.id) as like_count " +
+                "FROM ratings";
         List<Rating> ratings = new ArrayList<>();
 
         try (Connection conn = dbConnection.getConnection();
@@ -127,7 +131,8 @@ public class RatingRepository implements Repository<Rating> {
     }
 
     public List<Rating> findByMediaId(UUID mediaId) {
-        String sql = "SELECT id, media_id, user_id, stars, comment, is_public, created_at, updated_at " +
+        String sql = "SELECT id, media_id, user_id, stars, comment, is_public, created_at, updated_at, " +
+                "(SELECT COUNT(*) FROM rating_likes rl WHERE rl.rating_id = ratings.id) as like_count " +
                 "FROM ratings WHERE media_id = ?";
         List<Rating> ratings = new ArrayList<>();
 
@@ -150,7 +155,8 @@ public class RatingRepository implements Repository<Rating> {
     }
 
     public List<Rating> findByUserId(UUID userId) {
-        String sql = "SELECT id, media_id, user_id, stars, comment, is_public, created_at, updated_at " +
+        String sql = "SELECT id, media_id, user_id, stars, comment, is_public, created_at, updated_at, " +
+                "(SELECT COUNT(*) FROM rating_likes rl WHERE rl.rating_id = ratings.id) as like_count " +
                 "FROM ratings WHERE user_id = ?";
         List<Rating> ratings = new ArrayList<>();
 
@@ -173,7 +179,8 @@ public class RatingRepository implements Repository<Rating> {
     }
 
     public Optional<Rating> findByMediaIdAndUserId(UUID mediaId, UUID userId) {
-        String sql = "SELECT id, media_id, user_id, stars, comment, is_public, created_at, updated_at " +
+        String sql = "SELECT id, media_id, user_id, stars, comment, is_public, created_at, updated_at, " +
+                "(SELECT COUNT(*) FROM rating_likes rl WHERE rl.rating_id = ratings.id) as like_count " +
                 "FROM ratings WHERE media_id = ? AND user_id = ?";
 
         try (Connection conn = dbConnection.getConnection();
@@ -243,19 +250,19 @@ public class RatingRepository implements Repository<Rating> {
         }
     }
 
-    public List<Object[]> getRatingCountsPerUser() {
+    public List<UserRatingCount> getRatingCountsPerUser() {
         String sql = "SELECT user_id, COUNT(*) as rating_count FROM ratings GROUP BY user_id ORDER BY rating_count DESC";
-        List<Object[]> results = new ArrayList<>();
+        List<UserRatingCount> results = new ArrayList<>();
 
         try (Connection conn = dbConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
-                Object[] row = new Object[2];
-                row[0] = (UUID) rs.getObject("user_id");
-                row[1] = rs.getInt("rating_count");
-                results.add(row);
+                results.add(new UserRatingCount(
+                        (UUID) rs.getObject("user_id"),
+                        rs.getInt("rating_count")
+                ));
             }
 
         } catch (SQLException e) {
@@ -273,6 +280,7 @@ public class RatingRepository implements Repository<Rating> {
                 rs.getInt("stars"),
                 rs.getString("comment"),
                 rs.getBoolean("is_public"),
+                rs.getInt("like_count"),
                 rs.getTimestamp("created_at").toLocalDateTime(),
                 rs.getTimestamp("updated_at").toLocalDateTime()
         );

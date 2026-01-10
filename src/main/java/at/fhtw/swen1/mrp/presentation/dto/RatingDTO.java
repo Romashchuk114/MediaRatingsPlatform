@@ -1,7 +1,6 @@
 package at.fhtw.swen1.mrp.presentation.dto;
 
 import at.fhtw.swen1.mrp.business.Rating;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -13,6 +12,7 @@ public class RatingDTO {
     private int stars;
     private String comment;
     private boolean isPublic;
+    private int likeCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -26,6 +26,7 @@ public class RatingDTO {
         this.stars = rating.getStars();
         this.comment = rating.getComment();
         this.isPublic = rating.isPublic();
+        this.likeCount = rating.getLikeCount();
         this.createdAt = rating.getCreatedAt();
         this.updatedAt = rating.getUpdatedAt();
     }
@@ -76,6 +77,14 @@ public class RatingDTO {
 
     public void setPublic(boolean isPublic) {
         this.isPublic = isPublic;
+    }
+
+    public int getLikeCount() {
+        return likeCount;
+    }
+
+    public void setLikeCount(int likeCount) {
+        this.likeCount = likeCount;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -159,7 +159,7 @@ public class RatingService {
             for (Rating rating : ratings) {
                 totalStars += rating.getStars();
             }
-            averageScore = (double) totalStars / ratings.size();
+            averageScore = Math.round(((double) totalStars / ratings.size()) * 100.0) / 100.0;
         }
 
         Optional<MediaEntry> mediaOpt = mediaRepository.findById(mediaId);
@@ -184,6 +184,6 @@ public class RatingService {
         for (Rating rating : ratings) {
             totalStars += rating.getStars();
         }
-        return (double) totalStars / ratings.size();
+        return Math.round(((double) totalStars / ratings.size()) * 100.0) / 100.0;
     }
 }

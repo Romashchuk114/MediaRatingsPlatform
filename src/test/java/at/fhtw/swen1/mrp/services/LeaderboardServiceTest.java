@@ -2,6 +2,7 @@ package at.fhtw.swen1.mrp.services;
 
 import at.fhtw.swen1.mrp.business.LeaderboardData;
 import at.fhtw.swen1.mrp.business.User;
+import at.fhtw.swen1.mrp.business.UserRatingCount;
 import at.fhtw.swen1.mrp.data.RatingRepository;
 import at.fhtw.swen1.mrp.data.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,10 +41,10 @@ class LeaderboardServiceTest {
         UUID user2Id = UUID.randomUUID();
         UUID user3Id = UUID.randomUUID();
 
-        List<Object[]> ratingCounts = new ArrayList<>();
-        ratingCounts.add(new Object[]{user1Id, 10});
-        ratingCounts.add(new Object[]{user2Id, 5});
-        ratingCounts.add(new Object[]{user3Id, 3});
+        List<UserRatingCount> ratingCounts = new ArrayList<>();
+        ratingCounts.add(new UserRatingCount(user1Id, 10));
+        ratingCounts.add(new UserRatingCount(user2Id, 5));
+        ratingCounts.add(new UserRatingCount(user3Id, 3));
 
         when(ratingRepository.getRatingCountsPerUser()).thenReturn(ratingCounts);
         when(userRepository.findById(user1Id)).thenReturn(Optional.of(new User("user1", "hash")));

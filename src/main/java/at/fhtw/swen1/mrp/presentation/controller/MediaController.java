@@ -135,8 +135,9 @@ public class MediaController extends BaseController {
 
     private Response handleDeleteMedia(Request request, UUID userId) {
         UUID mediaId = getUUIDFromPath(request, 2);
-        mediaService.deleteMedia(mediaId, userId);
-        return noContent();
+        MediaEntry deletedMedia = mediaService.deleteMedia(mediaId, userId);
+        MediaEntryDTO response = new MediaEntryDTO(deletedMedia);
+        return ok(response);
     }
 
     private Response handleRateMedia(Request request, UUID userId) {

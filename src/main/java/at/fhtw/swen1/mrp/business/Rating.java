@@ -1,6 +1,5 @@
 package at.fhtw.swen1.mrp.business;
 
-
 import com.github.f4b6a3.uuid.UuidCreator;
 
 import java.time.LocalDateTime;
@@ -14,6 +13,7 @@ public class Rating {
     private int stars;
     private String comment;
     private boolean isPublic;
+    private int likeCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -24,18 +24,20 @@ public class Rating {
         setStars(stars);
         this.comment = comment;
         this.isPublic = false;
+        this.likeCount = 0;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
     public Rating(UUID id, UUID mediaId, UUID userId, int stars, String comment,
-                  boolean isPublic, LocalDateTime createdAt, LocalDateTime updatedAt) {
+                  boolean isPublic, int likeCount, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.mediaId = mediaId;
         this.userId = userId;
         this.stars = stars;
         this.comment = comment;
         this.isPublic = isPublic;
+        this.likeCount = likeCount;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -64,6 +66,10 @@ public class Rating {
         return isPublic;
     }
 
+    public int getLikeCount() {
+        return likeCount;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -85,6 +91,10 @@ public class Rating {
 
     public void setPublic(boolean isPublic) {
         this.isPublic = isPublic;
+    }
+
+    public void setLikeCount(int likeCount) {
+        this.likeCount = likeCount;
     }
 
     public void setUpdatedAt(LocalDateTime updatedAt) {

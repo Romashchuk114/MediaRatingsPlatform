@@ -2,6 +2,7 @@ package at.fhtw.swen1.mrp.services;
 
 import at.fhtw.swen1.mrp.business.LeaderboardData;
 import at.fhtw.swen1.mrp.business.User;
+import at.fhtw.swen1.mrp.business.UserRatingCount;
 import at.fhtw.swen1.mrp.data.RatingRepository;
 import at.fhtw.swen1.mrp.data.UserRepository;
 
@@ -20,13 +21,13 @@ public class LeaderboardService {
     }
 
     public List<LeaderboardData> getLeaderboard() {
-        List<Object[]> ratingCounts = ratingRepository.getRatingCountsPerUser();
+        List<UserRatingCount> ratingCounts = ratingRepository.getRatingCountsPerUser();
         List<LeaderboardData> leaderboard = new ArrayList<>();
 
         int rank = 1;
-        for (Object[] row : ratingCounts) {
-            UUID userId = (UUID) row[0];
-            int totalRatings = (int) row[1];
+        for (UserRatingCount item : ratingCounts) {
+            UUID userId = item.userId();
+            int totalRatings = item.count();
 
             Optional<User> userOpt = userRepository.findById(userId);
             if (userOpt.isPresent()) {

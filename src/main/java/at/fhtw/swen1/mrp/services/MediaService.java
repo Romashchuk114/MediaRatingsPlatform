@@ -98,14 +98,15 @@ public class MediaService {
         return mediaRepository.save(existingMedia);
     }
 
-    public void deleteMedia(UUID mediaId, UUID userId) {
+    public MediaEntry deleteMedia(UUID mediaId, UUID userId) {
         MediaEntry existingMedia = getMediaById(mediaId);
 
         if (!existingMedia.getCreatorId().equals(userId)) {
             throw new SecurityException("Only the creator can delete this media entry");
         }
 
-        mediaRepository.delete(mediaId);
+        Optional<MediaEntry> deleted = mediaRepository.delete(mediaId);
+        return deleted.orElse(existingMedia);
     }
 
     private void validateMediaInput(String title, String mediaTypeStr,

@@ -1,6 +1,7 @@
 package at.fhtw.swen1.mrp.presentation.dto;
 
 import at.fhtw.swen1.mrp.business.MediaEntry;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.List;
 import java.util.UUID;
@@ -31,6 +32,7 @@ public class MediaEntryDTO {
         this.creatorId = mediaEntry.getCreatorId();
     }
 
+    @JsonIgnore
     public boolean isValid() {
         return title != null && !title.trim().isEmpty()
                 && mediaType != null && !mediaType.trim().isEmpty()
