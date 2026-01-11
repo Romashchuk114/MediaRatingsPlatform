@@ -1,0 +1,1433 @@
+{
+	"info": {
+		"_postman_id": "1bda5141-a501-4cb2-b4a5-0cd6654256f3",
+		"name": "FINAL MRP API Collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "11288022"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "wrong",
+					"item": [
+						{
+							"name": "Register User with no username",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"username\": \"\",\n  \"password\": \"pass123\"\n}"
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/users/register",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"users",
+										"register"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Login User with wrong password",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.environment.set(\"TOKEN\", pm.response.json().token);"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"username\": \"user1\",\n  \"password\": \"password\"\n}"
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/users/login",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"users",
+										"login"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Register User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"user1\",\n  \"password\": \"pass123\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/users/register",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"users",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.environment.set(\"TOKEN\", pm.response.json().token);"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"user1\",\n  \"password\": \"pass123\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/users/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"users",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Media",
+			"item": [
+				{
+					"name": "wrong",
+					"item": [
+						{
+							"name": "Create Media Entry without Token",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"title\": \"Inception\",\n  \"description\": \"Sci-fi thriller\",\n  \"mediaType\": \"movie\",\n  \"releaseYear\": 2010,\n  \"genres\": [\n    \"sci-fi\",\n    \"thriller\"\n  ],\n  \"ageRestriction\": 12\n}"
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/media",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"media"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Media Entry without Title",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"description\": \"Sci-fi thriller\",\n  \"mediaType\": \"movie\",\n  \"releaseYear\": 2012,\n  \"genres\": [\n    \"sci-fi\",\n    \"thriller\"\n  ]\n}"
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/media",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"media"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Media Entry without Token",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/media/019baee7-3898-733b-851b-b43986fd778b",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"media",
+										"019baee7-3898-733b-851b-b43986fd778b"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Media Entry only Creator can update",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"title\": \"Inception Updated\",\n  \"description\": \"Updated description\",\n  \"mediaType\": \"movie\",\n  \"releaseYear\": 2010,\n  \"genres\": [\n    \"sci-fi\",\n    \"action\"\n  ],\n  \"ageRestriction\": 16\n}"
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/media/019baeeb-b895-7076-9289-eb22f74eccad",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"media",
+										"019baeeb-b895-7076-9289-eb22f74eccad"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get All Media with wrong path",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/medias",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"medias"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Media by ID with wrong ID type",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/media/1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"media",
+										"1"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Create Media Entry",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Shutter Island 2\",\n  \"description\": \"Sci-fi thriller\",\n  \"mediaType\": \"movie\",\n  \"releaseYear\": 2012,\n  \"genres\": [\n    \"sci-fi\",\n    \"thriller\"\n  ],\n  \"ageRestriction\": 16\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/media",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"media"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Media Entry",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Inception Updated\",\n  \"description\": \"Updated description\",\n  \"mediaType\": \"movie\",\n  \"releaseYear\": 2010,\n  \"genres\": [\n    \"sci-fi\",\n    \"action\"\n  ],\n  \"ageRestriction\": 16\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/media/019baee6-acba-7c7a-b9fb-9824c49156e7",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"media",
+								"019baee6-acba-7c7a-b9fb-9824c49156e7"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Media Entry",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/media/019baee7-3898-733b-851b-b43986fd778b",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"media",
+								"019baee7-3898-733b-851b-b43986fd778b"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search & Filter Media",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/media?title=incep&genre=sci-fi&sortBy=score",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"media"
+							],
+							"query": [
+								{
+									"key": "title",
+									"value": "incep"
+								},
+								{
+									"key": "genre",
+									"value": "sci-fi"
+								},
+								{
+									"key": "sortBy",
+									"value": "score"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Full Search & Filter",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/media?title=Incep&genre=sci-fi&mediaType=movie&releaseYear=2011&ageRestriction=13&rating=0&sortBy=title",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"media"
+							],
+							"query": [
+								{
+									"key": "title",
+									"value": "Incep"
+								},
+								{
+									"key": "genre",
+									"value": "sci-fi"
+								},
+								{
+									"key": "mediaType",
+									"value": "movie"
+								},
+								{
+									"key": "releaseYear",
+									"value": "2011"
+								},
+								{
+									"key": "ageRestriction",
+									"value": "13"
+								},
+								{
+									"key": "rating",
+									"value": "0"
+								},
+								{
+									"key": "sortBy",
+									"value": "title"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Media",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/media",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"media"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Media by ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/media/019baeeb-a90b-7231-8513-913ee2d426ce",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"media",
+								"019baeeb-a90b-7231-8513-913ee2d426ce"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Ratings of Media Entry",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/media/019baeeb-a90b-7231-8513-913ee2d426ce/ratings",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"media",
+								"019baeeb-a90b-7231-8513-913ee2d426ce",
+								"ratings"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Rating",
+			"item": [
+				{
+					"name": "wrong",
+					"item": [
+						{
+							"name": "Rate Media with wrong ID type",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"stars\": 5,\n  \"comment\": \"Amazing movie!\"\n}"
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/media/1/rate",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"media",
+										"1",
+										"rate"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Rate Media cannot rate 2x times the same Media",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"stars\": 5,\n  \"comment\": \"Amazing movie!\"\n}"
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/media/019baeeb-a90b-7231-8513-913ee2d426ce/rate",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"media",
+										"019baeeb-a90b-7231-8513-913ee2d426ce",
+										"rate"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Like Rating cannot like own rating",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/ratings/019baefb-b516-713b-8265-e87f351220cb/like",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"ratings",
+										"019baefb-b516-713b-8265-e87f351220cb",
+										"like"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Like Rating cannot like 2x the same rating",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/ratings/1/like",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"ratings",
+										"1",
+										"like"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Confirm Rating Comment only Creater can confirm",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/ratings/019baf03-83f9-7820-9e4c-8f7152c4828b/confirm",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"ratings",
+										"019baf03-83f9-7820-9e4c-8f7152c4828b",
+										"confirm"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Rate Media",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"stars\": 5,\n  \"comment\": \"Amazing movie!\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/media/019baeeb-a90b-7231-8513-913ee2d426ce/rate",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"media",
+								"019baeeb-a90b-7231-8513-913ee2d426ce",
+								"rate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Rating",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"stars\": 4,\n  \"comment\": \"Updated comment\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/ratings/019baefb-b516-713b-8265-e87f351220cb",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"ratings",
+								"019baefb-b516-713b-8265-e87f351220cb"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Like Rating",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/ratings/019baf03-83f9-7820-9e4c-8f7152c4828b/like",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"ratings",
+								"019baf03-83f9-7820-9e4c-8f7152c4828b",
+								"like"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Unlike Rating",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/ratings/019baf03-83f9-7820-9e4c-8f7152c4828b/like",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"ratings",
+								"019baf03-83f9-7820-9e4c-8f7152c4828b",
+								"like"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Confirm Rating Comment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/ratings/019baefb-b516-713b-8265-e87f351220cb/confirm",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"ratings",
+								"019baefb-b516-713b-8265-e87f351220cb",
+								"confirm"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Favorites",
+			"item": [
+				{
+					"name": "Mark as Favorite",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/media/019baee5-48a2-741c-a58a-ddade6eebb75/favorite",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"media",
+								"019baee5-48a2-741c-a58a-ddade6eebb75",
+								"favorite"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Unmark as Favorite",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/media/019baee5-48a2-741c-a58a-ddade6eebb75/favorite",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"media",
+								"019baee5-48a2-741c-a58a-ddade6eebb75",
+								"favorite"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "wrong",
+					"item": [
+						{
+							"name": "Update Profile only creator can update",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"user1@example.com\",\n  \"favoriteGenre\": \"sci-fi\"\n}"
+								},
+								"url": {
+									"raw": "http://localhost:8080/api/users/019baee9-62fb-7a18-b50e-57232161b485/profile",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"users",
+										"019baee9-62fb-7a18-b50e-57232161b485",
+										"profile"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Rating History comments visible if public or creator",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/users/019baee9-62fb-7a18-b50e-57232161b485/ratings",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"users",
+										"019baee9-62fb-7a18-b50e-57232161b485",
+										"ratings"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Get Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/users/019baee9-62fb-7a18-b50e-57232161b485/profile",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"users",
+								"019baee9-62fb-7a18-b50e-57232161b485",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user1@example.com\",\n  \"favoriteGenre\": \"sci-fi\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/users/019baede-d216-7e76-9926-d3e37a8eb780/profile",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"users",
+								"019baede-d216-7e76-9926-d3e37a8eb780",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Rating History",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/users/019baede-d216-7e76-9926-d3e37a8eb780/ratings",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"users",
+								"019baede-d216-7e76-9926-d3e37a8eb780",
+								"ratings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Favorites",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/users/019baede-d216-7e76-9926-d3e37a8eb780/favorites",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"users",
+								"019baede-d216-7e76-9926-d3e37a8eb780",
+								"favorites"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Recommendation",
+			"item": [
+				{
+					"name": "Get Recommendations by Genre",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/users/019baede-d216-7e76-9926-d3e37a8eb780/recommendations?type=genre",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"users",
+								"019baede-d216-7e76-9926-d3e37a8eb780",
+								"recommendations"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "genre"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Recommendations by Content",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/users/019baede-d216-7e76-9926-d3e37a8eb780/recommendations?type=content",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"users",
+								"019baede-d216-7e76-9926-d3e37a8eb780",
+								"recommendations"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "content"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Leaderboard",
+			"item": [
+				{
+					"name": "Get Leaderboard",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/leaderboard",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"leaderboard"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

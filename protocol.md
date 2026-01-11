@@ -1,106 +1,142 @@
-# Media Ratings Platform (MRP) - Protokoll
+# Media Ratings Platform - Protokoll
 
-**GitHub:** https://github.com/Romashchuk114/MediaRatingsPlatform  
-
-## 1. Projektübersicht
-
-REST-API Backend für Media Ratings Platform mit User-Management und CRUD-Operationen für Movies/Series/Games.
-
-**Tech Stack:**
-- Java 24
-- HTTP Server: `com.sun.net.httpserver.HttpServer`
-- JSON: Jackson
-- Persistence: In-Memory
+**GitHub:** https://github.com/Romashchuk114/MediaRatingsPlatform
 
 ---
 
-## 2. Architektur
+## 1. Architektur
 
-### 4-Layer Architecture
+### Layered Architecture
 
-- **Presentation** - HTTP-Server, Controller, DTOs
-- **Service** - Business-Logik
-- **Business** - Domain-Modelle (User, MediaEntry, Rating)
-- **Data** - Repositories (In-Memory)
+```
+presentation/  - Controller, DTOs, HTTP-Server
+services/      - Business-Logik
+business/      - Entities (User, MediaEntry, Rating)
+data/          - Repositories (JDBC)
+```
 
-### Design Patterns
+### Klassendiagramm
 
-**Repository Pattern**
+```
+Controller --> Service --> Repository --> Database
+     |            |             
+     v            v             
+   DTOs      Entities     
+```
+
+### Design-Entscheidungen
+
+| Entscheidung | Begruendung |
+|--------------|-------------|
+| com.sun.net.httpserver | Erlaubte HTTP-Library |
+| Jackson | JSON Serialisierung |
+| UUID v7 | Time-ordered IDs |
+| BCrypt | Password Hashing |
+| PreparedStatements | SQL Injection Prevention |
+
+---
+
+## 2. Lessons Learned
+
+**Was gut funktioniert hat:**
+- Layered Architecture ermöglicht klare Trennung der Verantwortlichkeiten
+- Repository-Interfaces erleichtern das Testen mit Mocks
+- Constructor Injection macht Abhängigkeiten explizit
+
+**Was ich anders machen würde:**
+- Früher mit PostgreSQL starten statt In-Memory
+- Besseres Error-Handling implementieren
+
+---
+
+## 3. Unit Tests (32 Tests)
+
+| Test-Klasse | Tests | Getestete Logik |
+|-------------|-------|-----------------|
+| UserServiceTest | 8     | Registration, Login, Validierung |
+| MediaServiceTest | 8     | CRUD, Ownership-Pruefung |
+| RatingServiceTest | 9     | Rating-Erstellung, Likes, Average |
+| LeaderboardServiceTest | 2     | Ranking nach Rating-Anzahl |
+| RecommendationServiceTest | 5     | Genre- und Content-Empfehlungen |
+
+**Warum diese Tests:**
+- Core Business Logic (Service-Layer)
+- Validierungsregeln
+- Ownership-Logik
+- Edge Cases
+
+---
+
+## 4. SOLID Principles
+
+### Single Responsibility Principle (SRP)
+
+Jede Klasse hat genau eine Verantwortung:
+
 ```java
-public class UserRepository {
-    public Optional<User> findById(UUID id) { ... }
-    public User save(User user) { ... }
+// UserService - nur User-Logik
+public class UserService {
+    public User registerUser(String username, String password) { ... }
+    public Optional<User> loginUser(String username, String password) { ... }
+}
+
+// RatingService - nur Rating-Logik
+public class RatingService {
+    public Rating createRating(UUID mediaId, UUID userId, int stars, String comment) { ... }
+    public void likeRating(UUID ratingId, UUID userId) { ... }
 }
 ```
 
-**Dependency Injection**
+### Dependency Inversion Principle (DIP)
+
+High-level Module hängen von Abstraktionen ab, nicht von konkreten Implementierungen:
+
 ```java
-public class MediaService {
-    private final MediaRepository mediaRepository;
-    private final UserRepository userRepository;
-    
-    public MediaService(MediaRepository mediaRepository, UserRepository userRepository) {
-        this.mediaRepository = mediaRepository;
+// Interface (Abstraktion)
+public interface UserRepository extends Repository<User> {
+    Optional<User> findByUsername(String username);
+}
+
+// Service hängt von Interface ab
+public class UserService {
+    private final UserRepository userRepository;  // Interface, nicht JdbcUserRepository
+
+    public UserService(UserRepository userRepository, PasswordHasher passwordHasher) {
         this.userRepository = userRepository;
     }
 }
-```
 
-**DTO Pattern**
-```java
-public class MediaEntryDTO {
-    public MediaEntryDTO(MediaEntry mediaEntry) {
-        this.id = mediaEntry.getId();
-        this.title = mediaEntry.getTitle();
-    }
-}
+// Konkrete Implementierung
+public class JdbcUserRepository implements UserRepository { ... }
 ```
 
 ---
 
-## 3. Implementierte Features
+## 5. Probleme und Lösungen
 
-### User Management
-- **POST /api/users/register** - Registrierung mit Username-Eindeutigkeit
-- **POST /api/users/login** - Login mit Token-Generierung (`username-mrpToken`)
+| Problem | Loesung |
+|---------|---------|
+| JSON LocalDateTime | jackson-datatype-jsr310 Modul |
+| Token Persistenz | Tokens in DB statt In-Memory |
+| Average Score Update | Neuberechnung bei Rating-CRUD |
 
-### Media CRUD
-- **POST /api/media** - Create (Auth required, Creator wird gespeichert)
-- **GET /api/media** - Read all (Public)
-- **GET /api/media/{id}** - Read single (Public)
-- **PUT /api/media/{id}** - Update (Auth required, nur Creator)
-- **DELETE /api/media/{id}** - Delete (Auth required, nur Creator)
+---
 
-### Token Authentication
-```java
-Authorization: Bearer username-mrpToken
-```
-- Token wird bei Login generiert
-- Bei POST/PUT/DELETE validiert
-- Owner-Check für Modifikationen
+## 6. Zeitaufwand
 
+| Aufgabe | Stunden |
+|---------|---------|
+| HTTP Server Setup | 7       |
+| User Management | 5       |
+| Media CRUD | 10      |
+| PostgreSQL Integration | 5       |
+| Rating System | 6       |
+| Favorites | 2       |
+| Search & Filter | 5       |
+| Recommendations | 5       |
+| Leaderboard | 3       |
+| Unit Tests | 6       |
+| Bugfixes & Refactoring | 6       |
+| **Gesamt** | **60**  |
 
-## 4. Lessons Learned
-
-**Was gut war:**
-- Layered Architecture - Klare Trennung
-- Repository Pattern - Einfache Datenmigration
-- DTO Pattern - Saubere API
-
-**Was verbesserbar ist:**
-- Custom Exceptions (für finale Abgabe)
-- JWT statt simple Tokens
-- Repository-Interfaces
-
-
-## 5. Nächste Schritte (Finale Abgabe)
-
-- [ ] PostgreSQL Integration
-- [ ] Custom Exception
-- [ ] Rating System (1-5 Stars + Comments)
-- [ ] Favorites Management
-- [ ] Search & Filter
-- [ ] Recommendation System
-- [ ] Leaderboard
-- [ ] 20+ meaningful Unit Tests
-- [ ] Docker Setup
+---

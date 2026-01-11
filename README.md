@@ -1,53 +1,60 @@
 # Media Ratings Platform (MRP) 
 
-REST-API Backend für Media Ratings Platform mit User-Management und CRUD-Operationen für Movies/Series/Games.
+REST-API Backend fuer Media Ratings Platform mit User-Management, Ratings, Favorites und Recommendations fuer Movies/Series/Games.
 
 **GitHub Repository:** https://github.com/Romashchuk114/MediaRatingsPlatform
 
-## Über das Projekt
+## Setup
 
-Die Media Ratings Platform ermöglicht es Usern, Medien-Inhalte (Filme, Serien, Games) zu verwalten. Die Zwischenabgabe umfasst User-Management, basic Media-CRUD und Token-basierte Authentifizierung.
+1. PostgreSQL starten: `docker-compose up -d`
+2. Projekt bauen: `mvn clean install`
+3. Server starten: `mvn exec:java`
 
-## Architektur
-
-**4-Layer Architecture:**
-- **Presentation** - HTTP-Server, Controller, DTOs
-- **Service** - Business-Logik
-- **Business** - Domain-Modelle (User, MediaEntry, Rating)
-- **Data** - Repositories (In-Memory)
-
-## ✅ Implementierte Features (Zwischenabgabe)
-
-### User Management
-- ✅ User Registration mit Username-Eindeutigkeit
-- ✅ User Login mit Token-Generierung
-- ✅ Token-Format: `{username}-mrpToken`
-
-### Media Management (Complete CRUD)
-- ✅ **Create** - Erstelle Media-Einträge (Auth required)
-- ✅ **Read** - Liste aller Media / Single Media (Public)
-- ✅ **Update** - Bearbeite eigene Media (Auth + Ownership)
-- ✅ **Delete** - Lösche eigene Media (Auth + Ownership)
-
-### Authorization
-- ✅ Token-basierte Authentifizierung
-- ✅ Ownership-Logik (nur Creator kann editieren/löschen)
-- ✅ Public Read-Access
+Server läuft auf `http://localhost:8080`
 
 ## API Endpoints
 
-### User
-```http
+### Auth
+```
 POST /api/users/register
 POST /api/users/login
 ```
 
-### Media
-```http
-POST   /api/media           # Create (Auth required)
-GET    /api/media           # Get all (Public)
-GET    /api/media/{id}      # Get single (Public)
-PUT    /api/media/{id}      # Update (Auth + Owner only)
-DELETE /api/media/{id}      # Delete (Auth + Owner only)
+### User
+```
+GET /api/users/{userId}/profile
+PUT /api/users/{userId}/profile
+GET /api/users/{userId}/ratings
+GET /api/users/{userId}/favorites
+GET /api/users/{userId}/recommendations
 ```
 
+### Media
+```
+POST   /api/media
+GET    /api/media
+GET    /api/media/{id}
+PUT    /api/media/{id}
+DELETE /api/media/{id}
+POST   /api/media/{id}/rate
+GET    /api/media/{id}/ratings
+POST   /api/media/{id}/favorite
+DELETE /api/media/{id}/favorite
+```
+
+### Ratings
+```
+PUT    /api/ratings/{id}
+DELETE /api/ratings/{id}
+POST   /api/ratings/{id}/like
+POST   /api/ratings/{id}/confirm
+```
+
+### Leaderboard
+```
+GET /api/leaderboard
+```
+
+## API testen
+
+Postman Collection: `FINAL MRP API Collection.json`
