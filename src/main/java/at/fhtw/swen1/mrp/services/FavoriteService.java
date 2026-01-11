@@ -1,8 +1,8 @@
 package at.fhtw.swen1.mrp.services;
 
-import at.fhtw.swen1.mrp.business.MediaEntry;
-import at.fhtw.swen1.mrp.data.FavoriteRepository;
-import at.fhtw.swen1.mrp.data.MediaRepository;
+import at.fhtw.swen1.mrp.business.entities.MediaEntry;
+import at.fhtw.swen1.mrp.data.repo.FavoriteRepository;
+import at.fhtw.swen1.mrp.data.repo.MediaRepository;
 
 import java.util.List;
 import java.util.UUID;

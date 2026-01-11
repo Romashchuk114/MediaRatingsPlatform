@@ -1,6 +1,6 @@
 package at.fhtw.swen1.mrp.presentation.controller;
 
-import at.fhtw.swen1.mrp.business.Rating;
+import at.fhtw.swen1.mrp.business.entities.Rating;
 import at.fhtw.swen1.mrp.presentation.dto.RatingDTO;
 import at.fhtw.swen1.mrp.presentation.httpserver.http.HttpStatus;
 import at.fhtw.swen1.mrp.presentation.httpserver.http.Method;

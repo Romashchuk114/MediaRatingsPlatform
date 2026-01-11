@@ -1,7 +1,7 @@
 package at.fhtw.swen1.mrp.services;
 
-import at.fhtw.swen1.mrp.business.User;
-import at.fhtw.swen1.mrp.data.UserRepository;
+import at.fhtw.swen1.mrp.business.entities.User;
+import at.fhtw.swen1.mrp.data.repo.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

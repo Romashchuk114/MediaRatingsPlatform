@@ -1,6 +1,6 @@
 package at.fhtw.swen1.mrp.presentation.dto;
 
-import at.fhtw.swen1.mrp.business.MediaEntry;
+import at.fhtw.swen1.mrp.business.entities.MediaEntry;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.List;

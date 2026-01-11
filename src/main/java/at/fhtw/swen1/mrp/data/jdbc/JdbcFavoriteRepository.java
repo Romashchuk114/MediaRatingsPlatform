@@ -1,7 +1,9 @@
-package at.fhtw.swen1.mrp.data;
+package at.fhtw.swen1.mrp.data.jdbc;
 
-import at.fhtw.swen1.mrp.business.MediaEntry;
-import at.fhtw.swen1.mrp.business.MediaType;
+import at.fhtw.swen1.mrp.business.entities.MediaEntry;
+import at.fhtw.swen1.mrp.business.enums.MediaType;
+import at.fhtw.swen1.mrp.data.DatabaseConnection;
+import at.fhtw.swen1.mrp.data.repo.FavoriteRepository;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,10 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class FavoriteRepository {
+public class JdbcFavoriteRepository implements FavoriteRepository {
     private final DatabaseConnection dbConnection;
 
-    public FavoriteRepository(DatabaseConnection dbConnection) {
+    public JdbcFavoriteRepository(DatabaseConnection dbConnection) {
         this.dbConnection = dbConnection;
     }
 

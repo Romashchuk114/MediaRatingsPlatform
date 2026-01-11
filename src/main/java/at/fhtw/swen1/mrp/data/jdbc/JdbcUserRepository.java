@@ -1,6 +1,8 @@
-package at.fhtw.swen1.mrp.data;
+package at.fhtw.swen1.mrp.data.jdbc;
 
-import at.fhtw.swen1.mrp.business.User;
+import at.fhtw.swen1.mrp.business.entities.User;
+import at.fhtw.swen1.mrp.data.DatabaseConnection;
+import at.fhtw.swen1.mrp.data.repo.UserRepository;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -8,10 +10,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
-public class UserRepository implements Repository<User> {
+public class JdbcUserRepository implements UserRepository {
     private final DatabaseConnection dbConnection;
 
-    public UserRepository(DatabaseConnection dbConnection) {
+    public JdbcUserRepository(DatabaseConnection dbConnection) {
         this.dbConnection = dbConnection;
     }
 

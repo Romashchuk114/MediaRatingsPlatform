@@ -1,7 +1,9 @@
-package at.fhtw.swen1.mrp.data;
+package at.fhtw.swen1.mrp.data.jdbc;
 
-import at.fhtw.swen1.mrp.business.Rating;
-import at.fhtw.swen1.mrp.business.UserRatingCount;
+import at.fhtw.swen1.mrp.business.entities.Rating;
+import at.fhtw.swen1.mrp.business.transfer.UserRatingCount;
+import at.fhtw.swen1.mrp.data.DatabaseConnection;
+import at.fhtw.swen1.mrp.data.repo.RatingRepository;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -9,10 +11,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public class RatingRepository implements Repository<Rating> {
+public class JdbcRatingRepository implements RatingRepository {
     private final DatabaseConnection dbConnection;
 
-    public RatingRepository(DatabaseConnection dbConnection) {
+    public JdbcRatingRepository(DatabaseConnection dbConnection) {
         this.dbConnection = dbConnection;
     }
 

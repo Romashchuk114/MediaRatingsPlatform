@@ -1,3 +1,3 @@
-package at.fhtw.swen1.mrp.business;
+package at.fhtw.swen1.mrp.business.transfer;
 
 public record LeaderboardData(int rank, String username, int totalRatings) {}

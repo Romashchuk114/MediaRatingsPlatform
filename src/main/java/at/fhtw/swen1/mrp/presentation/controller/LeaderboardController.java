@@ -1,6 +1,6 @@
 package at.fhtw.swen1.mrp.presentation.controller;
 
-import at.fhtw.swen1.mrp.business.LeaderboardData;
+import at.fhtw.swen1.mrp.business.transfer.LeaderboardData;
 import at.fhtw.swen1.mrp.presentation.dto.LeaderboardEntryDTO;
 import at.fhtw.swen1.mrp.presentation.httpserver.http.HttpStatus;
 import at.fhtw.swen1.mrp.presentation.httpserver.http.Method;

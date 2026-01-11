@@ -1,4 +1,7 @@
-package at.fhtw.swen1.mrp.data;
+package at.fhtw.swen1.mrp.data.jdbc;
+
+import at.fhtw.swen1.mrp.data.DatabaseConnection;
+import at.fhtw.swen1.mrp.data.repo.TokenRepository;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -7,10 +10,10 @@ import java.sql.SQLException;
 import java.util.Optional;
 import java.util.UUID;
 
-public class TokenRepository {
+public class JdbcTokenRepository implements TokenRepository {
     private final DatabaseConnection dbConnection;
 
-    public TokenRepository(DatabaseConnection dbConnection) {
+    public JdbcTokenRepository(DatabaseConnection dbConnection) {
         this.dbConnection = dbConnection;
     }
 

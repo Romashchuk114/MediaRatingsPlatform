@@ -1,6 +1,6 @@
 package at.fhtw.swen1.mrp.presentation.dto;
 
-import at.fhtw.swen1.mrp.business.Rating;
+import at.fhtw.swen1.mrp.business.entities.Rating;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

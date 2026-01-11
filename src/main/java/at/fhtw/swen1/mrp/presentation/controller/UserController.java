@@ -1,8 +1,8 @@
 package at.fhtw.swen1.mrp.presentation.controller;
 
-import at.fhtw.swen1.mrp.business.MediaEntry;
-import at.fhtw.swen1.mrp.business.Rating;
-import at.fhtw.swen1.mrp.business.User;
+import at.fhtw.swen1.mrp.business.entities.MediaEntry;
+import at.fhtw.swen1.mrp.business.entities.Rating;
+import at.fhtw.swen1.mrp.business.entities.User;
 import at.fhtw.swen1.mrp.presentation.dto.AuthResponse;
 import at.fhtw.swen1.mrp.presentation.dto.MediaEntryDTO;
 import at.fhtw.swen1.mrp.presentation.dto.ProfileDTO;

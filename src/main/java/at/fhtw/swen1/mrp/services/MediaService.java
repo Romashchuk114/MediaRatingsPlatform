@@ -1,10 +1,10 @@
 package at.fhtw.swen1.mrp.services;
 
-import at.fhtw.swen1.mrp.business.MediaEntry;
-import at.fhtw.swen1.mrp.business.MediaType;
-import at.fhtw.swen1.mrp.business.User;
-import at.fhtw.swen1.mrp.data.MediaRepository;
-import at.fhtw.swen1.mrp.data.UserRepository;
+import at.fhtw.swen1.mrp.business.entities.MediaEntry;
+import at.fhtw.swen1.mrp.business.enums.MediaType;
+import at.fhtw.swen1.mrp.business.entities.User;
+import at.fhtw.swen1.mrp.data.repo.MediaRepository;
+import at.fhtw.swen1.mrp.data.repo.UserRepository;
 
 import java.util.List;
 import java.util.Optional;

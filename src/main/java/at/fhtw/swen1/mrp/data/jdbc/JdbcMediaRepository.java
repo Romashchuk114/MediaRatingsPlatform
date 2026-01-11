@@ -1,7 +1,9 @@
-package at.fhtw.swen1.mrp.data;
+package at.fhtw.swen1.mrp.data.jdbc;
 
-import at.fhtw.swen1.mrp.business.MediaEntry;
-import at.fhtw.swen1.mrp.business.MediaType;
+import at.fhtw.swen1.mrp.business.entities.MediaEntry;
+import at.fhtw.swen1.mrp.business.enums.MediaType;
+import at.fhtw.swen1.mrp.data.DatabaseConnection;
+import at.fhtw.swen1.mrp.data.repo.MediaRepository;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -9,10 +11,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
-public class MediaRepository implements Repository<MediaEntry> {
+public class JdbcMediaRepository implements MediaRepository {
     private final DatabaseConnection dbConnection;
 
-    public MediaRepository(DatabaseConnection dbConnection) {
+    public JdbcMediaRepository(DatabaseConnection dbConnection) {
         this.dbConnection = dbConnection;
     }
 

@@ -1,9 +1,9 @@
 package at.fhtw.swen1.mrp.services;
 
-import at.fhtw.swen1.mrp.business.MediaEntry;
-import at.fhtw.swen1.mrp.business.Rating;
-import at.fhtw.swen1.mrp.data.MediaRepository;
-import at.fhtw.swen1.mrp.data.RatingRepository;
+import at.fhtw.swen1.mrp.business.entities.MediaEntry;
+import at.fhtw.swen1.mrp.business.entities.Rating;
+import at.fhtw.swen1.mrp.data.repo.MediaRepository;
+import at.fhtw.swen1.mrp.data.repo.RatingRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;

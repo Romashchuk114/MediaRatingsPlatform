@@ -1,4 +1,4 @@
-package at.fhtw.swen1.mrp.business;
+package at.fhtw.swen1.mrp.business.enums;
 
 public enum MediaType {
     MOVIE,

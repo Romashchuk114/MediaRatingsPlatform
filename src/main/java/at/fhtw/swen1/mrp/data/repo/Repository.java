@@ -1,4 +1,4 @@
-package at.fhtw.swen1.mrp.data;
+package at.fhtw.swen1.mrp.data.repo;
 
 import java.util.List;
 import java.util.Optional;

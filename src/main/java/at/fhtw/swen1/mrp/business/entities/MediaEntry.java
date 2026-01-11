@@ -1,6 +1,7 @@
-package at.fhtw.swen1.mrp.business;
+package at.fhtw.swen1.mrp.business.entities;
 
 
+import at.fhtw.swen1.mrp.business.enums.MediaType;
 import com.github.f4b6a3.uuid.UuidCreator;
 
 import java.util.ArrayList;

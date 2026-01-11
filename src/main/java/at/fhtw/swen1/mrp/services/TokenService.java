@@ -1,6 +1,6 @@
 package at.fhtw.swen1.mrp.services;
 
-import at.fhtw.swen1.mrp.data.TokenRepository;
+import at.fhtw.swen1.mrp.data.repo.TokenRepository;
 
 import java.util.Optional;
 import java.util.UUID;

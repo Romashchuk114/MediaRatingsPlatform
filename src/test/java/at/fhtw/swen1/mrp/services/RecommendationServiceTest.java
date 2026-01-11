@@ -1,10 +1,10 @@
 package at.fhtw.swen1.mrp.services;
 
-import at.fhtw.swen1.mrp.business.MediaEntry;
-import at.fhtw.swen1.mrp.business.MediaType;
-import at.fhtw.swen1.mrp.business.Rating;
-import at.fhtw.swen1.mrp.data.MediaRepository;
-import at.fhtw.swen1.mrp.data.RatingRepository;
+import at.fhtw.swen1.mrp.business.entities.MediaEntry;
+import at.fhtw.swen1.mrp.business.enums.MediaType;
+import at.fhtw.swen1.mrp.business.entities.Rating;
+import at.fhtw.swen1.mrp.data.repo.MediaRepository;
+import at.fhtw.swen1.mrp.data.repo.RatingRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,11 +1,16 @@
 package at.fhtw.swen1.mrp;
 
 import at.fhtw.swen1.mrp.data.DatabaseConnection;
-import at.fhtw.swen1.mrp.data.FavoriteRepository;
-import at.fhtw.swen1.mrp.data.MediaRepository;
-import at.fhtw.swen1.mrp.data.RatingRepository;
-import at.fhtw.swen1.mrp.data.TokenRepository;
-import at.fhtw.swen1.mrp.data.UserRepository;
+import at.fhtw.swen1.mrp.data.repo.FavoriteRepository;
+import at.fhtw.swen1.mrp.data.repo.MediaRepository;
+import at.fhtw.swen1.mrp.data.repo.RatingRepository;
+import at.fhtw.swen1.mrp.data.repo.TokenRepository;
+import at.fhtw.swen1.mrp.data.repo.UserRepository;
+import at.fhtw.swen1.mrp.data.jdbc.JdbcUserRepository;
+import at.fhtw.swen1.mrp.data.jdbc.JdbcMediaRepository;
+import at.fhtw.swen1.mrp.data.jdbc.JdbcTokenRepository;
+import at.fhtw.swen1.mrp.data.jdbc.JdbcRatingRepository;
+import at.fhtw.swen1.mrp.data.jdbc.JdbcFavoriteRepository;
 import at.fhtw.swen1.mrp.presentation.controller.LeaderboardController;
 import at.fhtw.swen1.mrp.presentation.controller.MediaController;
 import at.fhtw.swen1.mrp.presentation.controller.RatingController;
@@ -38,11 +43,11 @@ public class Main {
 
         DatabaseConnection dbConnection = new DatabaseConnection(dbUrl, dbUser, dbPassword);
 
-        UserRepository userRepository = new UserRepository(dbConnection);
-        MediaRepository mediaRepository = new MediaRepository(dbConnection);
-        TokenRepository tokenRepository = new TokenRepository(dbConnection);
-        RatingRepository ratingRepository = new RatingRepository(dbConnection);
-        FavoriteRepository favoriteRepository = new FavoriteRepository(dbConnection);
+        UserRepository userRepository = new JdbcUserRepository(dbConnection);
+        MediaRepository mediaRepository = new JdbcMediaRepository(dbConnection);
+        TokenRepository tokenRepository = new JdbcTokenRepository(dbConnection);
+        RatingRepository ratingRepository = new JdbcRatingRepository(dbConnection);
+        FavoriteRepository favoriteRepository = new JdbcFavoriteRepository(dbConnection);
 
         PasswordHasher passwordHasher = new PasswordHasher();
         UserService userService = new UserService(userRepository, passwordHasher);
